@@ -31,10 +31,17 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env*
+.env
+.env.local
+.env.*.local
 
 # vercel
 .vercel
+
+# cache
+.cache
+onnx
+models
 
 # typescript
 *.tsbuildinfo
