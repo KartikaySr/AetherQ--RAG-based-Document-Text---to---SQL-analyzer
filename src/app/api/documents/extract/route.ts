@@ -10,6 +10,10 @@ import { chunkDocument } from "@/lib/chunkDocument";
 
 import { generateEmbedding } from "@/lib/generateEmbedding";
 
+const MAX_SERVER_FILE_SIZE_MB = Number(process.env.DOCUMENT_MAX_FILE_MB ?? "25");
+const MAX_SERVER_FILE_SIZE_BYTES =
+  Math.max(5, MAX_SERVER_FILE_SIZE_MB) * 1024 * 1024;
+
 function inferDocumentType(fileType: string | undefined, storagePath: string) {
   if (fileType) {
     return fileType.toLowerCase();
@@ -58,11 +62,13 @@ export async function POST(req: NextRequest) {
 
     }
 
-    console.log("=================================");
-    console.log("DOCUMENT EXTRACTION STARTED");
-    console.log("DOCUMENT ID:", documentId);
-    console.log("STORAGE PATH:", storagePath);
-    console.log("FILE TYPE:", fileType);
+    if (process.env.NODE_ENV === "development") {
+      console.log("=================================");
+      console.log("DOCUMENT EXTRACTION STARTED");
+      console.log("DOCUMENT ID:", documentId);
+      console.log("STORAGE PATH:", storagePath);
+      console.log("FILE TYPE:", fileType);
+    }
 
     /*
     =================================
@@ -103,10 +109,20 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(arrayBuffer);
 
-    console.log(
-      "BUFFER SIZE:",
-      buffer.length
-    );
+    if (buffer.length > MAX_SERVER_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        {
+          error: `File too large for extraction. Maximum supported size is ${MAX_SERVER_FILE_SIZE_MB}MB.`,
+        },
+        {
+          status: 413,
+        }
+      );
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("BUFFER SIZE:", buffer.length);
+    }
 
     /*
     =================================
@@ -133,7 +149,9 @@ export async function POST(req: NextRequest) {
 
       if (extension === "pdf") {
 
-        console.log("PARSING PDF");
+        if (process.env.NODE_ENV === "development") {
+          console.log("PARSING PDF");
+        }
 
         const parsed = await pdf(buffer);
 
@@ -151,7 +169,9 @@ export async function POST(req: NextRequest) {
 
       else if (extension === "docx") {
 
-        console.log("PARSING DOCX");
+        if (process.env.NODE_ENV === "development") {
+          console.log("PARSING DOCX");
+        }
 
         const result =
           await mammoth.extractRawText({
@@ -177,9 +197,9 @@ export async function POST(req: NextRequest) {
         extension === "json"
       ) {
 
-        console.log(
-          "PARSING TEXT FILE"
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log("PARSING TEXT FILE");
+        }
 
         extractedText =
           buffer.toString("utf-8");
@@ -221,7 +241,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Document extraction failed",
+            "Document extraction failed. If this is a scanned/image-only PDF, run OCR first and then upload the OCR text PDF.",
         },
         {
           status: 500,
@@ -239,25 +259,23 @@ export async function POST(req: NextRequest) {
     extractedText =
       extractedText.trim();
 
-    console.log(
-      "TEXT LENGTH:",
-      extractedText.length
-    );
-
-    console.log(
-      "PAGE COUNT:",
-      pageCount
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log("TEXT LENGTH:", extractedText.length);
+      console.log("PAGE COUNT:", pageCount);
+    }
 
     if (!extractedText) {
+      const noTextError =
+        extension === "pdf"
+          ? "No readable text found in PDF. This is usually an image-only/scanned PDF. Run OCR and upload the OCR-enabled PDF."
+          : "No readable text found in document";
 
       return NextResponse.json(
         {
-          error:
-            "No readable text found in document",
+          error: noTextError,
         },
         {
-          status: 400,
+          status: 422,
         }
       );
 
@@ -298,15 +316,16 @@ export async function POST(req: NextRequest) {
     =================================
     */
 
-    console.log("CHUNKING STARTED");
+    if (process.env.NODE_ENV === "development") {
+      console.log("CHUNKING STARTED");
+    }
 
     const chunks =
       chunkDocument(extractedText);
 
-    console.log(
-      "TOTAL CHUNKS:",
-      chunks.length
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log("TOTAL CHUNKS:", chunks.length);
+    }
 
     /*
     =================================
@@ -329,19 +348,18 @@ export async function POST(req: NextRequest) {
 
       try {
 
-        console.log(
-          "GENERATING EMBEDDING:",
-          chunk.chunkIndex
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log("GENERATING EMBEDDING:", chunk.chunkIndex);
+        }
 
         const embedding =
           await generateEmbedding(
             chunk.text
           );
 
-        console.log(
-          "EMBEDDING GENERATED"
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log("EMBEDDING GENERATED");
+        }
 
         const {
           error: vectorError,
@@ -362,12 +380,8 @@ export async function POST(req: NextRequest) {
             vectorError
           );
 
-        } else {
-
-          console.log(
-            "VECTOR INSERTED"
-          );
-
+        } else if (process.env.NODE_ENV === "development") {
+          console.log("VECTOR INSERTED");
         }
 
       } catch (embeddingError) {
@@ -381,11 +395,10 @@ export async function POST(req: NextRequest) {
 
     }
 
-    console.log(
-      "DOCUMENT PROCESSING COMPLETE"
-    );
-
-    console.log("=================================");
+    if (process.env.NODE_ENV === "development") {
+      console.log("DOCUMENT PROCESSING COMPLETE");
+      console.log("=================================");
+    }
 
     const extraction =
       extractionRecord ||

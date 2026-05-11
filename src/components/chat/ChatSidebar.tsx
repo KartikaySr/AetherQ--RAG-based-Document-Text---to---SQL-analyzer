@@ -1,28 +1,86 @@
 "use client";
 
-import { Menu, X, Plus, Search, MessageSquare } from "lucide-react";
+import { Menu, X, Plus, Search, MessageSquare, Trash2, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useToast } from "@/providers/ToastProvider";
+import { conversationService } from "@/services/conversationService";
+import type { Conversation } from "@/types/chat";
+import { formatDistanceToNow } from "date-fns";
 
 export function ChatSidebar() {
-  const { sidebarOpen, toggleSidebar, bumpChatSession } = useWorkspaceStore();
+  const { sidebarOpen, toggleSidebar, bumpChatSession, setSelectedConversation, selectedConversationId } = useWorkspaceStore();
   const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [recentChats, setRecentChats] = useState<Conversation[]>([]);
+  const [isLoadingChats, setIsLoadingChats] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Placeholder chat history - in production, load from Supabase
-  const recentChats = [
-    { id: "1", title: "Machine Learning Basics", date: "Today" },
-    { id: "2", title: "Enterprise AI Strategy", date: "Yesterday" },
-    { id: "3", title: "Data Analysis Discussion", date: "2 days ago" },
-    { id: "4", title: "PDF Document Analysis", date: "3 days ago" },
-    { id: "5", title: "Business Intelligence", date: "Last week" },
-  ];
+  // Load conversations from Supabase
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        setIsLoadingChats(true);
+        const conversations = await conversationService.getConversations();
+        setRecentChats(conversations);
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
+        addToast("Could not load chat history", "error");
+      } finally {
+        setIsLoadingChats(false);
+      }
+    };
+
+    loadConversations();
+  }, [addToast]);
+
+  const handleDeleteChat = async (e: React.MouseEvent, chatId: string) => {
+    e.stopPropagation();
+    
+    if (!confirm("Are you sure you want to delete this chat? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setDeletingId(chatId);
+      await conversationService.deleteConversation(chatId);
+      setRecentChats((prev) => prev.filter((chat) => chat.id !== chatId));
+      
+      // If the deleted chat was selected, select a new one
+      if (selectedConversationId === chatId) {
+        setSelectedConversation(null);
+        bumpChatSession();
+      }
+      
+      addToast("Chat deleted successfully", "success");
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      addToast("Failed to delete chat", "error");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleSelectChat = (conversationId: string) => {
+    setSelectedConversation(conversationId);
+    // On mobile, close sidebar after selection
+    if (sidebarOpen) {
+      toggleSidebar();
+    }
+  };
 
   const filteredChats = recentChats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const formatDate = (date: Date): string => {
+    try {
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return "Unknown";
+    }
+  };
 
   return (
     <>
@@ -100,32 +158,64 @@ export function ChatSidebar() {
           <p className="text-xs font-medium uppercase tracking-wider text-white/40 mb-3">
             Recent Chats
           </p>
-          {filteredChats.length > 0 ? (
+          {isLoadingChats ? (
+            <p className="text-xs text-white/40 py-4 text-center">Loading...</p>
+          ) : filteredChats.length > 0 ? (
             filteredChats.map((chat) => (
-              <button
+              <div
                 key={chat.id}
-                className="w-full text-left rounded-lg border border-transparent bg-white/[0.03] px-3 py-2.5 text-sm text-white/70 hover:border-white/10 hover:bg-white/5 transition active:scale-95"
+                className={`group relative w-full rounded-lg border transition ${
+                  selectedConversationId === chat.id
+                    ? "border-cyan-400/50 bg-cyan-500/10"
+                    : "border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/5"
+                }`}
               >
-                <div className="flex items-start gap-2">
-                  <MessageSquare size={14} className="mt-0.5 shrink-0 text-cyan-400" />
-                  <div className="min-w-0">
-                    <p className="line-clamp-1 font-medium text-white/90">
-                      {chat.title}
-                    </p>
-                    <p className="text-xs text-white/40 mt-1">{chat.date}</p>
+                <button
+                  onClick={() => handleSelectChat(chat.id)}
+                  className="w-full text-left px-3 py-2.5 text-sm text-white/70 active:scale-95"
+                >
+                  <div className="flex items-start gap-2">
+                    <MessageSquare size={14} className="mt-0.5 shrink-0 text-cyan-400" />
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-1 font-medium text-white/90">
+                        {chat.title}
+                      </p>
+                      <p className="text-xs text-white/40 mt-1">
+                        {formatDate(chat.updatedAt)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                {/* Delete button - shows on hover */}
+                <button
+                  onClick={(e) => handleDeleteChat(e, chat.id)}
+                  disabled={deletingId === chat.id}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-white/30 hover:bg-red-500/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition disabled:opacity-50"
+                  title="Delete this chat"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             ))
           ) : (
             <p className="text-xs text-white/40 py-4 text-center">
-              No chats found
+              {searchQuery ? "No chats found" : "No chat history yet"}
             </p>
           )}
         </div>
 
         {/* Footer */}
         <div className="space-y-3 border-t border-white/10 pt-4">
+          <Link
+            href="https://github.com/KartikaySr/AetherQ---Rag-Based-Document-Analyzer"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-2.5 text-sm text-purple-100/90 hover:bg-purple-500/[0.14] transition font-medium"
+          >
+            <ExternalLink size={16} />
+            <span className="hidden sm:inline">Documentation</span>
+            <span className="sm:hidden">Docs</span>
+          </Link>
           <Link
             href="/analytics"
             className="block rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-100/90 hover:bg-emerald-500/[0.14] transition text-center font-medium"

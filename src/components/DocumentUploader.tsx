@@ -29,7 +29,8 @@ type DocumentUploaderProps = {
   onUploaded: (document: UploadedDocument) => void;
 };
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE_MB = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_MB ?? "25");
+const MAX_FILE_SIZE = Math.max(5, MAX_FILE_SIZE_MB) * 1024 * 1024;
 const DOCUMENTS_BUCKET = "documents";
 const SUPPORTED_MIME_TYPES = {
   "application/pdf": [".pdf"],
@@ -123,9 +124,9 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
         updateItem(id, {
           progress: 100,
           status: "error",
-          message: "Document exceeds the 10MB upload limit.",
+          message: `Document exceeds the ${MAX_FILE_SIZE_MB}MB upload limit.`,
         });
-        addToast("File exceeds 10MB.", "error");
+        addToast(`File exceeds ${MAX_FILE_SIZE_MB}MB.`, "error");
         return;
       }
 
@@ -212,7 +213,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
       const rejected = rejections[0];
       const reason =
         rejected?.errors[0]?.message ||
-        "Supported files: PDF, DOCX, TXT, Markdown, CSV, JSON up to 10MB.";
+        `Supported files: PDF, DOCX, TXT, Markdown, CSV, JSON up to ${MAX_FILE_SIZE_MB}MB.`;
       setNotice(reason);
     },
   });
@@ -278,7 +279,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
             </button>
 
             <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm text-white/55">
-              PDF · DOCX · TXT · MD · CSV · JSON · max 10MB
+              PDF · DOCX · TXT · MD · CSV · JSON · max {MAX_FILE_SIZE_MB}MB
             </div>
           </div>
         </div>

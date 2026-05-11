@@ -12,6 +12,7 @@ import { classifyGeneralIntent } from "@/lib/intentRouter";
 import type { UploadedDocument } from "@/lib/documentTypes";
 import { useToast } from "@/providers/ToastProvider";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { conversationService } from "@/services/conversationService";
 import type {
   ChatMessage as ChatMessageType,
   RetrievedChunk,
@@ -76,7 +77,7 @@ async function fetchSearchChunks(query: string): Promise<RetrievedChunk[]> {
 }
 
 function ChatWorkspace() {
-  const { mode, selectedDocumentId, setSelectedDocumentId } =
+  const { mode, selectedDocumentId, setSelectedDocumentId, selectedConversationId, setSelectedConversation } =
     useWorkspaceStore();
   const { stream } = useStreamMessage();
   const { addToast } = useToast();
@@ -87,6 +88,7 @@ function ChatWorkspace() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef(messages);
@@ -98,6 +100,39 @@ function ChatWorkspace() {
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  // Load selected conversation from Supabase
+  useEffect(() => {
+    if (!selectedConversationId) return;
+
+    const loadConversation = async () => {
+      try {
+        setIsLoadingConversation(true);
+        const conversation = await conversationService.getConversation(
+          selectedConversationId
+        );
+        
+        // Load the conversation messages
+        if (conversation.messages && conversation.messages.length > 0) {
+          setMessages(conversation.messages);
+        } else {
+          setMessages([createWelcomeMessage()]);
+        }
+        
+        // Set the mode based on the conversation
+        // (Note: you might want to store mode in the conversation)
+      } catch (error) {
+        console.error("Failed to load conversation:", error);
+        addToast("Failed to load conversation", "error");
+        setMessages([createWelcomeMessage()]);
+        setSelectedConversation(null);
+      } finally {
+        setIsLoadingConversation(false);
+      }
+    };
+
+    loadConversation();
+  }, [selectedConversationId, addToast, setSelectedConversation]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
