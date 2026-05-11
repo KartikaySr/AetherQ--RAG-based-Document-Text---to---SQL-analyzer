@@ -1,199 +1,86 @@
-import { supabase } from "@/lib/supabase";
-import type {
-  Conversation,
-  ChatMessage as ChatMsg,
-  ConversationWorkspaceMode,
-  RetrievedChunk,
-} from "@/types/chat";
-
-type SupabaseConversationMessageRow = {
+export interface Conversation {
   id: string;
-  role: ChatMsg["role"];
-  content: string;
-  chunks: unknown;
-  created_at: string;
-};
+  title: string;
+  created_at?: string;
+  updated_at?: string;
+  messages?: any[];
+}
 
-function normalizeMessageRow(msg: SupabaseConversationMessageRow): ChatMsg {
-  const rawChunks = msg.chunks;
-  const chunks = Array.isArray(rawChunks)
-    ? (rawChunks as RetrievedChunk[])
-    : undefined;
-  return {
-    id: msg.id,
-    role: msg.role,
-    content: msg.content,
-    chunks,
-    timestamp: new Date(msg.created_at),
-  };
+const STORAGE_KEY = "aetherq_conversations";
+
+function readStorage(): Conversation[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (!raw) return [];
+
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function writeStorage(conversations: Conversation[]) {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
 }
 
 export const conversationService = {
-  async createConversation(
-    title: string,
-    mode: ConversationWorkspaceMode
-  ): Promise<Conversation> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) throw new Error("User not authenticated");
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert([
-        {
-          user_id: user.id,
-          title,
-          mode,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      title: data.title,
-      mode: data.mode,
-      messages: [],
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
-    };
-  },
-
   async getConversations(): Promise<Conversation[]> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) throw new Error("User not authenticated");
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .select(
-        `
-        id,
-        title,
-        mode,
-        created_at,
-        updated_at,
-        messages (
-          id,
-          role,
-          content,
-          chunks,
-          created_at
-        )
-      `
-      )
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false });
-
-    if (error) throw error;
-
-    return (data || []).map((conv) => ({
-      id: conv.id,
-      title: conv.title,
-      mode: conv.mode,
-      messages: (conv.messages || []).map((msg: SupabaseConversationMessageRow) =>
-        normalizeMessageRow(msg)
-      ),
-      createdAt: new Date(conv.created_at),
-      updatedAt: new Date(conv.updated_at),
-    }));
+    return readStorage();
   },
 
-  async getConversation(id: string): Promise<Conversation> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  async getConversation(id: string): Promise<Conversation | null> {
+    const conversations = readStorage();
 
-    if (!user) throw new Error("User not authenticated");
+    return conversations.find((c) => c.id === id) || null;
+  },
 
-    const { data, error } = await supabase
-      .from("conversations")
-      .select(
-        `
-        id,
-        title,
-        mode,
-        created_at,
-        updated_at,
-        messages (
-          id,
-          role,
-          content,
-          chunks,
-          created_at
-        )
-      `
-      )
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
+  async createConversation(title: string): Promise<Conversation> {
+    const conversations = readStorage();
 
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      title: data.title,
-      mode: data.mode,
-      messages: (data.messages || []).map((msg: SupabaseConversationMessageRow) =>
-        normalizeMessageRow(msg)
-      ),
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+    const newConversation: Conversation = {
+      id: crypto.randomUUID(),
+      title,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      messages: [],
     };
+
+    conversations.unshift(newConversation);
+
+    writeStorage(conversations);
+
+    return newConversation;
   },
 
-  async addMessage(
-    conversationId: string,
-    message: ChatMsg
-  ): Promise<ChatMsg> {
-    const { data, error } = await supabase
-      .from("messages")
-      .insert([
-        {
-          conversation_id: conversationId,
-          role: message.role,
-          content: message.content,
-          chunks: message.chunks || null,
-        },
-      ])
-      .select()
-      .single();
+  async deleteConversation(id: string): Promise<void> {
+    const conversations = readStorage();
 
-    if (error) throw error;
+    const filtered = conversations.filter((c) => c.id !== id);
 
-    return {
-      id: data.id,
-      role: data.role,
-      content: data.content,
-      chunks: data.chunks,
-      timestamp: new Date(data.created_at),
-    };
+    writeStorage(filtered);
   },
 
-  async updateConversationTitle(
-    conversationId: string,
-    title: string
+  async updateConversation(
+    id: string,
+    updates: Partial<Conversation>
   ): Promise<void> {
-    const { error } = await supabase
-      .from("conversations")
-      .update({ title, updated_at: new Date().toISOString() })
-      .eq("id", conversationId);
+    const conversations = readStorage();
 
-    if (error) throw error;
-  },
+    const updated = conversations.map((conversation) => {
+      if (conversation.id !== id) return conversation;
 
-  async deleteConversation(conversationId: string): Promise<void> {
-    const { error } = await supabase
-      .from("conversations")
-      .delete()
-      .eq("id", conversationId);
+      return {
+        ...conversation,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+    });
 
-    if (error) throw error;
+    writeStorage(updated);
   },
 };
