@@ -1,1 +1,1 @@
-# AetherQ---Rag-Based-Document-Analyzer
+# AetherQ---RAG-Based-Document-Analyzer
