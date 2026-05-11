@@ -1,10 +1,8 @@
-const VECTOR_DIMENSION = 384;
-
 export async function generateEmbedding(
   text: string
 ): Promise<number[]> {
   const response = await fetch(
-    "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2",
+    "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction",
     {
       method: "POST",
       headers: {
@@ -27,19 +25,14 @@ export async function generateEmbedding(
 
   const result = await response.json();
 
-  if (!Array.isArray(result) || !Array.isArray(result[0])) {
+  if (!Array.isArray(result)) {
     throw new Error("Invalid embedding response");
   }
 
-  return result[0];
-}
-
-export function toPgVector(embedding: number[]): string {
-  if (embedding.length !== VECTOR_DIMENSION) {
-    throw new Error(
-      `Embedding dimension mismatch. Expected ${VECTOR_DIMENSION}, received ${embedding.length}.`
-    );
+  // normalize shape
+  if (Array.isArray(result[0])) {
+    return result[0];
   }
 
-  return `[${embedding.join(",")}]`;
+  return result;
 }
