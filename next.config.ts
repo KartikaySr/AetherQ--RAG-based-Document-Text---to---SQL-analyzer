@@ -3,9 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: [
     "@xenova/transformers",
-    "mammoth",
     "pdf-parse",
-    "pg",
+    "onnxruntime-node",
   ],
 };
 
