@@ -29,10 +29,13 @@ export async function generateEmbedding(
     throw new Error("Invalid embedding response");
   }
 
-  // normalize shape
   if (Array.isArray(result[0])) {
     return result[0];
   }
 
   return result;
+}
+
+export function toPgVector(vector: number[]): string {
+  return `[${vector.join(",")}]`;
 }
