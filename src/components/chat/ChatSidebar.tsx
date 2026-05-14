@@ -5,15 +5,24 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useToast } from "@/providers/ToastProvider";
-import { conversationService } from "@/services/conversationService";
-import type { Conversation } from "@/types/chat";
+import {
+  conversationService,
+  type ConversationSummary,
+} from "@/services/conversationService";
 import { formatDistanceToNow } from "date-fns";
 
 export function ChatSidebar() {
-  const { sidebarOpen, toggleSidebar, bumpChatSession, setSelectedConversation, selectedConversationId } = useWorkspaceStore();
+  const {
+    sidebarOpen,
+    toggleSidebar,
+    bumpChatSession,
+    setSelectedConversation,
+    selectedConversationId,
+    chatSessionNonce,
+  } = useWorkspaceStore();
   const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [recentChats, setRecentChats] = useState<Conversation[]>([]);
+  const [recentChats, setRecentChats] = useState<ConversationSummary[]>([]);
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -33,7 +42,7 @@ export function ChatSidebar() {
     };
 
     loadConversations();
-  }, [addToast]);
+  }, [addToast, chatSessionNonce]);
 
   const handleDeleteChat = async (e: React.MouseEvent, chatId: string) => {
     e.stopPropagation();
@@ -44,7 +53,11 @@ export function ChatSidebar() {
 
     try {
       setDeletingId(chatId);
-      await conversationService.deleteConversation(chatId);
+      const ok = await conversationService.deleteConversation(chatId);
+      if (!ok) {
+        addToast("Could not delete conversation", "error");
+        return;
+      }
       setRecentChats((prev) => prev.filter((chat) => chat.id !== chatId));
       
       // If the deleted chat was selected, select a new one
@@ -114,7 +127,7 @@ export function ChatSidebar() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <Link
-            href="/"
+            href="/workspace"
             className="flex items-center gap-2 font-semibold text-white hover:opacity-80 transition"
           >
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-500" />
@@ -132,6 +145,7 @@ export function ChatSidebar() {
         <button
           type="button"
           onClick={() => {
+            setSelectedConversation(null);
             bumpChatSession();
             addToast("Started a new conversation", "info");
           }}
@@ -217,13 +231,13 @@ export function ChatSidebar() {
             <span className="sm:hidden">Docs</span>
           </Link>
           <Link
-            href="/analytics"
+            href="/workspace/analytics"
             className="block rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-100/90 hover:bg-emerald-500/[0.14] transition text-center font-medium"
           >
             📊 Analytics
           </Link>
           <Link
-            href="/documents"
+            href="/workspace/documents"
             className="block rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 transition text-center font-medium"
           >
             📄 Documents

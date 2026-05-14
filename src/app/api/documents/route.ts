@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-
-import { supabase } from "../../../lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest, createAuthErrorResponse } from "@/lib/auth-helpers";
 
 type DocumentMetadataRequest = {
   name?: string;
@@ -19,9 +18,16 @@ const CHUNKS_TABLE = "document_chunks";
 
 export async function GET() {
   try {
+    const { user, supabase } = await getUserFromRequest();
+
+    if (!user) {
+      return createAuthErrorResponse();
+    }
+
     const { data: documents, error: documentsError } = await supabase
       .from(DOCUMENTS_TABLE)
       .select("id,name,size,storage_path,uploaded_at")
+      .eq("user_id", user.id)
       .order("uploaded_at", {
         ascending: false,
       });
@@ -51,6 +57,7 @@ export async function GET() {
       .select(
         "id,document_id,extracted_text,page_count,extraction_status,created_at"
       )
+      .eq("user_id", user.id)
       .in("document_id", documentIds);
 
     if (extractionsError) {
@@ -75,6 +82,7 @@ export async function GET() {
     const { data: chunks, error: chunksError } = await supabase
       .from(CHUNKS_TABLE)
       .select("document_id")
+      .eq("user_id", user.id)
       .in("document_id", documentIds);
 
     if (chunksError) {
@@ -118,8 +126,14 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const { user, supabase } = await getUserFromRequest();
+
+    if (!user) {
+      return createAuthErrorResponse();
+    }
+
     const body = (await req.json()) as DocumentMetadataRequest;
 
     if (!body.name || !body.storage_path || typeof body.size !== "number") {
@@ -139,6 +153,7 @@ export async function POST(req: Request) {
         name: body.name,
         size: body.size,
         storage_path: body.storage_path,
+        user_id: user.id,
       })
       .select("id,name,size,storage_path,uploaded_at")
       .single();
@@ -174,8 +189,14 @@ export async function POST(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
+    const { user, supabase } = await getUserFromRequest();
+
+    if (!user) {
+      return createAuthErrorResponse();
+    }
+
     const body = (await req.json()) as DocumentDeleteRequest;
 
     if (!body.id || !body.storage_path) {
@@ -187,6 +208,18 @@ export async function DELETE(req: Request) {
           status: 400,
         }
       );
+    }
+
+    // Verify document belongs to user
+    const { data: document } = await supabase
+      .from(DOCUMENTS_TABLE)
+      .select("id")
+      .eq("id", body.id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!document) {
+      return createAuthErrorResponse(404);
     }
 
     const { error: storageError } = await supabase.storage
@@ -208,6 +241,7 @@ export async function DELETE(req: Request) {
       .from(DOCUMENTS_TABLE)
       .delete()
       .eq("id", body.id)
+      .eq("user_id", user.id)
       .eq("storage_path", body.storage_path);
 
     if (databaseError) {

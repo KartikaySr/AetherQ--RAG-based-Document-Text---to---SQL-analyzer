@@ -1,7 +1,9 @@
 import Groq from "groq-sdk";
 import { NextResponse } from "next/server";
 
+import { createAuthErrorResponse, getUserFromRequest } from "@/lib/auth-helpers";
 import { logSqlAudit } from "@/lib/auditLogger";
+import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
 import { getAnalyticsDbPool } from "@/lib/dbPool";
 import {
   ANALYTICS_TABLES,
@@ -27,7 +29,7 @@ async function generateSqlFromNl(nl: string): Promise<string | null> {
   if (!process.env.GROQ_API_KEY) return null;
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: GROQ_CHAT_MODEL,
     messages: [
       {
         role: "system",
@@ -65,7 +67,7 @@ async function summarizeWithGroq(
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   const compact = JSON.stringify(preview ?? []).slice(0, 7000);
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: GROQ_CHAT_MODEL,
     messages: [
       {
         role: "system",
@@ -92,6 +94,11 @@ export async function POST(req: Request) {
   let sqlForAudit = "";
 
   try {
+    const { user } = await getUserFromRequest();
+    if (!user) {
+      return createAuthErrorResponse();
+    }
+
     if (!process.env.GROQ_API_KEY) {
       return NextResponse.json(
         { error: "AI SQL assistant is not configured." },

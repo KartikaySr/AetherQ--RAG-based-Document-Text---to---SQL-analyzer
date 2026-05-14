@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Database, FileSearch, ShieldCheck, Sparkles } from "lucide-react";
 
-import DocumentCard from "../../components/DocumentCard";
-import DocumentUploader from "../../components/DocumentUploader";
-import { Sidebar } from "../../components/Sidebar";
-import { MarkdownRenderer } from "../../components/chat/MarkdownRenderer";
-import { useStreamMessage } from "../../hooks/useStreamMessage";
-import { useToast } from "../../providers/ToastProvider";
-import type { DocumentExtraction, UploadedDocument } from "../../lib/documentTypes";
-import type { RetrievedChunk } from "../../types/chat";
+import DocumentCard from "@/components/DocumentCard";
+import DocumentUploader from "@/components/DocumentUploader";
+import { Sidebar } from "@/components/Sidebar";
+import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
+import { useStreamMessage } from "@/hooks/useStreamMessage";
+import { useToast } from "@/providers/ToastProvider";
+import type { DocumentExtraction, UploadedDocument } from "@/lib/documentTypes";
+import type { RetrievedChunk } from "@/types/chat";
 
 function getFileExtensionFromName(name: string) {
   const match = name.toLowerCase().match(/\.([^.]+)$/);
@@ -243,7 +243,7 @@ export default function DocumentsPage() {
         matchCount: 6,
       },
       {
-        onChunk: (chunk) => {
+        onChunk: (chunk: { content?: string; chunks?: string; error?: string }) => {
           if (chunk.content) {
             aggregated += chunk.content.replace(/\\n/g, "\n");
             setAnalysisAnswer(aggregated);
@@ -272,7 +272,7 @@ export default function DocumentsPage() {
           }
           setAnalysisLoading(false);
         },
-        onError: (err) => {
+        onError: (err: Error) => {
           setAnalysisAnswer(null);
           setAnalysisChunks([]);
           const safe =

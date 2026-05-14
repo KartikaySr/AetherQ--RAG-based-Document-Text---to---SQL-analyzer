@@ -96,7 +96,7 @@ export default function Home() {
             </button>
 
             <Link
-              href="/chat"
+              href="/login?redirect=/workspace/chat"
               className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 px-4 py-2.5 text-sm font-medium shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-95 md:px-5"
             >
               <span className="md:hidden">Workspace</span>
@@ -153,7 +153,7 @@ export default function Home() {
               <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
 
                 <Link
-                  href="/chat"
+                  href="/login?redirect=/workspace/chat"
                   className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:scale-105 transition flex items-center justify-center gap-3 shadow-2xl shadow-cyan-500/20"
                 >
                   Open AetherQ
@@ -331,7 +331,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
           {/* Card 1 */}
-          <Link href="/chat">
+          <Link href="/login?redirect=/workspace/chat">
 
             <motion.div
               whileHover={{
@@ -373,7 +373,7 @@ export default function Home() {
           </Link>
 
           {/* Card 2 */}
-          <Link href="/analytics">
+          <Link href="/login?redirect=/workspace/analytics">
 
             <motion.div
               whileHover={{
@@ -415,7 +415,7 @@ export default function Home() {
           </Link>
 
           {/* Card 3 */}
-          <Link href="/documents">
+          <Link href="/login?redirect=/workspace/documents">
 
             <motion.div
               whileHover={{

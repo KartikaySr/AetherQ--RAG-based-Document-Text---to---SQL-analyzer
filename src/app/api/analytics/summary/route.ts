@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { createAuthErrorResponse, getUserFromRequest } from "@/lib/auth-helpers";
 import { getAnalyticsDbPool } from "@/lib/dbPool";
 
 export const runtime = "nodejs";
@@ -55,6 +56,11 @@ const SAFE_HEADCOUNT = `
 `;
 
 export async function GET() {
+  const { user } = await getUserFromRequest();
+  if (!user) {
+    return createAuthErrorResponse();
+  }
+
   const pool = getAnalyticsDbPool();
   if (!pool) {
     return NextResponse.json(

@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AetherQ
 
-## Getting Started
+Enterprise AI workspace: **Supabase auth + RLS**, **Groq** LLM, **Hugging Face** embeddings (384-dim), **Postgres** analytics, document vault and chat.
 
-First, run the development server:
+## Quick start
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Copy environment template and fill secrets:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   cp .env.example .env.local
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Install and run:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-## Learn More
+3. Open [http://localhost:3000](http://localhost:3000), sign in, then use **Workspace** routes under `/workspace`.
 
-To learn more about Next.js, take a look at the following resources:
+4. **Health check** (after env is set): [http://localhost:3000/api/health](http://localhost:3000/api/health) — JSON shows which subsystems have keys configured (no secret values).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Configuration
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+All variables are documented in **`.env.example`**. Minimum for a full local demo:
 
-## Deploy on Vercel
+| Area | Variables |
+|------|-----------|
+| Auth & data plane | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Chat / SQL / QA | `GROQ_API_KEY` |
+| Search & indexing | `HUGGINGFACE_API_KEY` |
+| Analytics dashboard & Text-to-SQL | `DATABASE_URL` (same or separate Postgres with enterprise schema) |
+| SQL audit rows in Supabase | `SUPABASE_SERVICE_ROLE_KEY` (optional) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Optional: `NEXT_PUBLIC_SITE_URL`, `GROQ_CHAT_MODEL`, `HUGGINGFACE_EMBEDDING_URL`, `DATABASE_SSL_DISABLE`, `DATABASE_POOL_MAX`, upload size vars.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database migrations (Supabase SQL editor)
+
+Run SQL files **in order** on your Supabase project (Extensions + SQL). Adjust if a table already exists.
+
+1. `supabase-documents-schema.sql` — documents metadata + storage-oriented RLS (superseded later by isolation script).
+2. `supabase-document-extractions-schema.sql` — extraction status.
+3. `supabase-vector-schema.sql` — `vector` extension + `document_chunks` (384-dim).
+4. `supabase-conversations-schema.sql` — conversations + messages + RLS.
+5. `supabase-enterprise-schema.sql` — warehouse tables + `query_audit_logs`.
+6. `supabase-add-user-isolation.sql` — **critical**: per-user RLS, `user_id` columns, `match_document_chunks_for_user`, storage policies.
+7. `supabase-messages-delete-policy.sql` — allows replacing message rows when syncing chat history.
+
+Create a **Storage** bucket named `documents` (or align app + policies with your bucket name). Configure **Auth** redirect URLs for your deployed origin (e.g. `https://app.example.com/auth/callback`).
+
+## Scripts
+
+- `npm run dev` — development
+- `npm run build` / `npm run start` — production
+- `npm run lint` — ESLint
+
+## Deploy
+
+Use the structured checklist in the project maintainer / Cursor handoff: set env on the host (e.g. Vercel), run migrations on Supabase, set `NEXT_PUBLIC_SITE_URL` and auth redirect URLs to that host, then `npm run build` and deploy.

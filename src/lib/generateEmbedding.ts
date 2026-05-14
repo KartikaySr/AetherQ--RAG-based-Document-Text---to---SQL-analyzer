@@ -1,19 +1,23 @@
+import { getHuggingFaceEmbeddingUrl } from "./huggingfaceEmbedding";
+
 export async function generateEmbedding(
   text: string
 ): Promise<number[]> {
-  const response = await fetch(
-    "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: text,
-      }),
-    }
-  );
+  const token = process.env.HUGGINGFACE_API_KEY?.trim();
+  if (!token) {
+    throw new Error("HUGGINGFACE_API_KEY is not configured.");
+  }
+
+  const response = await fetch(getHuggingFaceEmbeddingUrl(), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: text,
+    }),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();

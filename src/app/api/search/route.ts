@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { generateEmbedding, toPgVector } from "../../../lib/generateEmbedding";
-import { supabase } from "../../../lib/supabase";
+import { getUserFromRequest, createAuthErrorResponse } from "@/lib/auth-helpers";
 
 export const runtime = "nodejs";
 
@@ -18,8 +18,14 @@ type MatchDocumentChunkRow = {
   similarity: number;
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const { user, supabase } = await getUserFromRequest();
+
+    if (!user) {
+      return createAuthErrorResponse();
+    }
+
     const body = (await req.json()) as SearchRequest;
     const query = body.query?.replace(/\s+/g, " ").trim();
 
@@ -37,8 +43,9 @@ export async function POST(req: Request) {
     const matchCount = Math.min(Math.max(body.matchCount ?? 5, 1), 12);
     const embedding = await generateEmbedding(query);
 
-    const { data, error } = await supabase.rpc("match_document_chunks", {
+    const { data, error } = await supabase.rpc("match_document_chunks_for_user", {
       query_embedding: toPgVector(embedding),
+      p_user_id: user.id,
       match_count: matchCount,
     });
 

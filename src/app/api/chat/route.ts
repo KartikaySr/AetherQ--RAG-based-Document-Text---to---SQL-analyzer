@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 
+import { createAuthErrorResponse, getUserFromRequest } from "@/lib/auth-helpers";
+import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
+
 const SYSTEM_BASE =
   "You are AetherQ, an advanced enterprise AI platform created under Mindineers Labs. You answer intelligently, professionally, and conversationally with markdown formatting (headings, bullets, tables when useful). When document retrieval context is provided, ground statements in those excerpts and note when information is missing. When analytics context includes SQL summaries or sample rows, interpret them faithfully without inventing extra numbers.";
 
 export async function POST(req: Request) {
   try {
+    const { user } = await getUserFromRequest();
+    if (!user) {
+      return createAuthErrorResponse();
+    }
+
     if (!process.env.GROQ_API_KEY) {
       return NextResponse.json(
         { error: "AI assistant is temporarily unavailable." },
@@ -64,7 +72,7 @@ export async function POST(req: Request) {
                 Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
               },
               body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: GROQ_CHAT_MODEL,
                 messages: [
                   {
                     role: "system",

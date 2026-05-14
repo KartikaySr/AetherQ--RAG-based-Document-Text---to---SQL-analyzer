@@ -9,7 +9,10 @@ export function getAnalyticsDbPool(): Pool | null {
   if (!globalForPool.__aetherqPg) {
     globalForPool.__aetherqPg = new Pool({
       connectionString: conn,
-      max: 4,
+      max: Math.min(
+        20,
+        Math.max(1, Number.parseInt(process.env.DATABASE_POOL_MAX ?? "6", 10) || 6)
+      ),
       idleTimeoutMillis: 15_000,
       connectionTimeoutMillis: 12_000,
       ssl:

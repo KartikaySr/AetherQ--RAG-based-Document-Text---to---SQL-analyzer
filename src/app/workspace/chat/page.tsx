@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
 
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
@@ -77,8 +77,14 @@ async function fetchSearchChunks(query: string): Promise<RetrievedChunk[]> {
 }
 
 function ChatWorkspace() {
-  const { mode, selectedDocumentId, setSelectedDocumentId, selectedConversationId, setSelectedConversation } =
-    useWorkspaceStore();
+  const {
+    mode,
+    setMode,
+    selectedDocumentId,
+    setSelectedDocumentId,
+    selectedConversationId,
+    setSelectedConversation,
+  } = useWorkspaceStore();
   const { stream } = useStreamMessage();
   const { addToast } = useToast();
 
@@ -91,14 +97,36 @@ function ChatWorkspace() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef(messages);
+  /** Conversation id used for Supabase persistence (survives first-turn create before store updates). */
+  const activeConvRef = useRef<string | null>(null);
   const streamingExtrasRef = useRef<{
     chunks?: RetrievedChunk[];
     sqlResult?: SqlResultPayload;
   }>({});
 
+  useLayoutEffect(() => {
+    activeConvRef.current = useWorkspaceStore.getState().selectedConversationId;
+  }, []);
+
+  useEffect(() => {
+    if (selectedConversationId) {
+      activeConvRef.current = selectedConversationId;
+    }
+  }, [selectedConversationId]);
+
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    const id = activeConvRef.current;
+    if (!id || isLoading) return;
+    const snapshot = messages;
+    const t = window.setTimeout(() => {
+      void conversationService.replaceAllMessages(id, snapshot);
+    }, 900);
+    return () => window.clearTimeout(t);
+  }, [messages, isLoading]);
 
   // Load selected conversation from Supabase
   useEffect(() => {
@@ -117,6 +145,7 @@ function ChatWorkspace() {
           return;
         }
 
+        setMode(conversation.mode);
         if (conversation.messages.length > 0) {
           setMessages(conversation.messages);
         } else {
@@ -127,12 +156,12 @@ function ChatWorkspace() {
         addToast("Failed to load conversation", "error");
         setMessages([createWelcomeMessage()]);
         setSelectedConversation(null);
-      } finally {
       }
     };
 
     loadConversation();
-  }, [selectedConversationId, addToast, setSelectedConversation]);
+  }, [selectedConversationId, addToast, setSelectedConversation, setMode]);
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -517,6 +546,22 @@ function ChatWorkspace() {
       if (!messageText.trim()) return;
       const trimmed = messageText.trim();
 
+      let convId = selectedConversationId;
+      if (!convId) {
+        const title =
+          trimmed.length > 56 ? `${trimmed.slice(0, 56)}…` : trimmed || "New chat";
+        const created = await conversationService.createConversation(title, mode);
+        if (!created) {
+          addToast("Could not start a saved conversation.", "error");
+          return;
+        }
+        convId = created.id;
+        activeConvRef.current = convId;
+        setSelectedConversation(convId);
+      } else {
+        activeConvRef.current = convId;
+      }
+
       if (mode === "analytics") {
         await runWarehouseSql(trimmed, skipUserEcho);
         return;
@@ -596,7 +641,9 @@ function ChatWorkspace() {
       mode,
       runHybridAnalyticsDocs,
       runWarehouseSql,
+      selectedConversationId,
       selectedDocumentId,
+      setSelectedConversation,
       streamDocumentQA,
       streamGroqChat,
     ]
