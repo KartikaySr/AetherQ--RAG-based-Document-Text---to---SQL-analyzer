@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 
 import { generateEmbedding, toPgVector } from "@/lib/generateEmbedding";
-import { supabase } from "@/lib/supabase";
+import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
 
 type QARequest = {
   documentId?: string;
@@ -92,6 +92,7 @@ export async function POST(req: Request) {
     const matchCount = Math.min(Math.max(body.matchCount ?? 5, 1), 10);
     const embedding = await generateEmbedding(query);
     const queryEmbedding = toPgVector(embedding);
+    const { supabase } = await import("@/lib/supabase");
 
     let results: MatchDocumentChunkRow[] = [];
     let dataError: Error | null = null;
@@ -197,7 +198,7 @@ export async function POST(req: Request) {
                 Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
               },
               body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: GROQ_CHAT_MODEL,
                 messages: [
                   {
                     role: "system",

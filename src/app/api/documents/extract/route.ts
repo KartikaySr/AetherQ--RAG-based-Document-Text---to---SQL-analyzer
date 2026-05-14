@@ -7,11 +7,10 @@ import pdf from "pdf-parse";
 
 import mammoth from "mammoth";
 
-import { supabase } from "@/lib/supabase";
-
 import { chunkDocument } from "@/lib/chunkDocument";
 
 import { generateEmbedding } from "@/lib/generateEmbedding";
+import { getUserFromRequest, createAuthErrorResponse } from "@/lib/auth-helpers";
 
 const MAX_SERVER_FILE_SIZE_MB = Number(process.env.DOCUMENT_MAX_FILE_MB ?? "25");
 const MAX_SERVER_FILE_SIZE_BYTES =
@@ -30,7 +29,8 @@ function createExtractionPayload(
   documentId: string,
   extractedText: string,
   pageCount: number,
-  status: "completed" | "failed"
+  status: "completed" | "failed",
+  userId: string
 ) {
   return {
     id: `${status}-${documentId}`,
@@ -38,6 +38,7 @@ function createExtractionPayload(
     extracted_text: extractedText,
     page_count: pageCount,
     extraction_status: status,
+    user_id: userId,
     created_at: new Date().toISOString(),
   };
 }
@@ -45,6 +46,11 @@ function createExtractionPayload(
 export async function POST(req: NextRequest) {
 
   try {
+    const { user } = await getUserFromRequest();
+
+    if (!user) {
+      return createAuthErrorResponse();
+    }
 
     const body = await req.json();
 
@@ -72,6 +78,8 @@ export async function POST(req: NextRequest) {
       console.log("STORAGE PATH:", storagePath);
       console.log("FILE TYPE:", fileType);
     }
+
+    const { supabase } = await import("@/lib/supabase");
 
     /*
     =================================
@@ -409,7 +417,8 @@ export async function POST(req: NextRequest) {
         documentId,
         extractedText,
         pageCount,
-        "completed"
+        "completed",
+        user.id
       );
 
     return NextResponse.json({
