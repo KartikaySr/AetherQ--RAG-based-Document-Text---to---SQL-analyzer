@@ -29,173 +29,286 @@ type DbMessageRow = {
   created_at: string;
 };
 
-function normalizeMode(raw: string | null | undefined): ConversationWorkspaceMode {
+function normalizeMode(
+  raw: string | null | undefined
+): ConversationWorkspaceMode {
   if (raw === "documents") return "documents";
   if (raw === "analytics") return "analytics";
   return "general";
 }
 
-/** DB constraint may only allow general | documents — map analytics to general for storage. */
-function modeForInsert(mode: ConversationWorkspaceMode): "general" | "documents" {
+/** DB constraint may only allow general | documents */
+function modeForInsert(
+  mode: ConversationWorkspaceMode
+): "general" | "documents" {
   if (mode === "documents") return "documents";
   return "general";
 }
 
-function rowToChatMessage(row: DbMessageRow): ChatMessage {
+function rowToChatMessage(
+  row: DbMessageRow
+): ChatMessage {
   return {
     id: row.id,
     role: row.role === "user" ? "user" : "assistant",
     content: row.content,
     timestamp: new Date(row.created_at),
     chunks:
-      Array.isArray(row.chunks) && row.chunks.length > 0 ? row.chunks : undefined,
+      Array.isArray(row.chunks) &&
+      row.chunks.length > 0
+        ? row.chunks
+        : undefined,
   };
 }
 
 export const conversationService = {
-  async getConversations(): Promise<ConversationSummary[]> {
+  async getConversations(): Promise<
+    ConversationSummary[]
+  > {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) return [];
 
       const { data, error } = await supabase
         .from("conversations")
         .select("id, title, updated_at")
         .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
+        .order("updated_at", {
+          ascending: false,
+        });
 
-      if (error || !data) return [];
+      if (error || !data) {
+        console.error(
+          "GET CONVERSATIONS ERROR:",
+          error
+        );
+
+        return [];
+      }
 
       return data.map((row) => ({
         id: row.id,
         title: row.title,
-        updatedAt: new Date(row.updated_at),
+        updatedAt: new Date(
+          row.updated_at
+        ),
       }));
-    } catch {
+    } catch (err) {
+      console.error(
+        "GET CONVERSATIONS CATCH:",
+        err
+      );
+
       return [];
     }
   },
 
-  async getConversation(id: string): Promise<LoadedConversation | null> {
+  async getConversation(
+    id: string
+  ): Promise<LoadedConversation | null> {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) return null;
 
-      const { data: conv, error: convError } = await supabase
+      const {
+        data: conv,
+        error: convError,
+      } = await supabase
         .from("conversations")
-        .select("id, title, mode, created_at, updated_at")
+        .select(
+          "id, title, mode, created_at, updated_at"
+        )
         .eq("id", id)
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (convError || !conv) return null;
+      if (convError || !conv) {
+        console.error(
+          "GET CONVERSATION ERROR:",
+          convError
+        );
 
-      const { data: msgRows, error: msgError } = await supabase
+        return null;
+      }
+
+      const {
+        data: msgRows,
+        error: msgError,
+      } = await supabase
         .from("messages")
-        .select("id, role, content, chunks, created_at")
+        .select(
+          "id, role, content, chunks, created_at"
+        )
         .eq("conversation_id", id)
-        .order("created_at", { ascending: true });
+        .order("created_at", {
+          ascending: true,
+        });
 
-      if (msgError) return null;
+      if (msgError) {
+        console.error(
+          "GET MESSAGES ERROR:",
+          msgError
+        );
 
-      const messages = (msgRows ?? []).map((r) =>
-        rowToChatMessage(r as DbMessageRow)
+        return null;
+      }
+
+      const messages = (
+        msgRows ?? []
+      ).map((r) =>
+        rowToChatMessage(
+          r as DbMessageRow
+        )
       );
 
       return {
         id: conv.id,
         title: conv.title,
-        mode: normalizeMode(conv.mode),
+        mode: normalizeMode(
+          conv.mode
+        ),
         messages,
-        createdAt: new Date(conv.created_at),
-        updatedAt: new Date(conv.updated_at),
+        createdAt: new Date(
+          conv.created_at
+        ),
+        updatedAt: new Date(
+          conv.updated_at
+        ),
       };
-    } catch {
+    } catch (err) {
+      console.error(
+        "GET CONVERSATION CATCH:",
+        err
+      );
+
       return null;
     }
   },
 
-async createConversation(
-  title: string,
-  mode: string
-) {
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+  async createConversation(
+    title: string,
+    mode: string
+  ) {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      console.error(
-        "AUTH ERROR:",
-        userError
+      console.log(
+        "CURRENT USER:",
+        user
       );
 
-      return null;
-    }
+      if (userError || !user) {
+        console.error(
+          "AUTH ERROR:",
+          userError
+        );
 
-    const safeMode =
-      mode === "documents"
-        ? "documents"
-        : "general";
+        return null;
+      }
 
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert({
+      const safeMode =
+        mode === "documents"
+          ? "documents"
+          : "general";
+
+      const insertPayload = {
         user_id: user.id,
         title,
         mode: safeMode,
-      })
-      .select()
-      .single();
+      };
 
-    if (error) {
+      console.log(
+        "INSERT PAYLOAD:",
+        insertPayload
+      );
+
+      const { data, error } =
+        await supabase
+          .from("conversations")
+          .insert(insertPayload)
+          .select()
+          .single();
+
+      if (error) {
+        console.error(
+          "SUPABASE INSERT ERROR:",
+          error
+        );
+
+        console.error(
+          "FULL INSERT ERROR:",
+          JSON.stringify(
+            error,
+            null,
+            2
+          )
+        );
+
+        return null;
+      }
+
+      console.log(
+        "CONVERSATION CREATED:",
+        data
+      );
+
+      return data;
+    } catch (err) {
       console.error(
-        "SUPABASE INSERT ERROR:",
-        error
+        "CREATE CONVERSATION ERROR:",
+        err
       );
 
       return null;
     }
+  },
 
-    return data;
-  } catch (err) {
-    console.error(
-      "CREATE CONVERSATION ERROR:",
-      err
-    );
-
-    return null;
-  }
-},
-
-  async deleteConversation(id: string): Promise<boolean> {
+  async deleteConversation(
+    id: string
+  ): Promise<boolean> {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) return false;
 
-      const { error } = await supabase
-        .from("conversations")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
+      const { error } =
+        await supabase
+          .from("conversations")
+          .delete()
+          .eq("id", id)
+          .eq("user_id", user.id);
 
-      return !error;
-    } catch {
+      if (error) {
+        console.error(
+          "DELETE CONVERSATION ERROR:",
+          error
+        );
+
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error(
+        "DELETE CONVERSATION CATCH:",
+        err
+      );
+
       return false;
     }
   },
 
-  /**
-   * Replaces all messages for a conversation (excludes UI-only welcome bubble).
-   * Requires `messages_delete` RLS policy — see supabase-messages-delete-policy.sql
-   */
   async replaceAllMessages(
     conversationId: string,
     messages: ChatMessage[]
@@ -204,63 +317,109 @@ async createConversation(
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) return false;
 
-      const { data: conv, error: convErr } = await supabase
+      const {
+        data: conv,
+        error: convErr,
+      } = await supabase
         .from("conversations")
         .select("id")
         .eq("id", conversationId)
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (convErr || !conv) return false;
+      if (convErr || !conv) {
+        console.error(
+          "VERIFY CONVERSATION ERROR:",
+          convErr
+        );
 
-      const { error: delErr } = await supabase
-        .from("messages")
-        .delete()
-        .eq("conversation_id", conversationId);
-
-      if (delErr) {
-        if (process.env.NODE_ENV === "development") {
-          console.warn("messages delete (RLS or missing policy):", delErr.message);
-        }
         return false;
       }
 
-      const persistable = messages.filter((m) => m.id !== "welcome");
-      if (persistable.length === 0) {
+      const { error: delErr } =
+        await supabase
+          .from("messages")
+          .delete()
+          .eq(
+            "conversation_id",
+            conversationId
+          );
+
+      if (delErr) {
+        console.error(
+          "DELETE MESSAGES ERROR:",
+          delErr
+        );
+
+        return false;
+      }
+
+      const persistable =
+        messages.filter(
+          (m) => m.id !== "welcome"
+        );
+
+      if (
+        persistable.length === 0
+      ) {
         await supabase
           .from("conversations")
-          .update({ updated_at: new Date().toISOString() })
+          .update({
+            updated_at:
+              new Date().toISOString(),
+          })
           .eq("id", conversationId)
           .eq("user_id", user.id);
+
         return true;
       }
 
-      const rows = persistable.map((m) => ({
-        conversation_id: conversationId,
-        role: m.role,
-        content: m.content,
-        chunks: m.chunks && m.chunks.length > 0 ? m.chunks : null,
-      }));
+      const rows =
+        persistable.map((m) => ({
+          conversation_id:
+            conversationId,
+          role: m.role,
+          content: m.content,
+          chunks:
+            m.chunks &&
+            m.chunks.length > 0
+              ? m.chunks
+              : null,
+        }));
 
-      const { error: insErr } = await supabase.from("messages").insert(rows);
+      const { error: insErr } =
+        await supabase
+          .from("messages")
+          .insert(rows);
 
       if (insErr) {
-        if (process.env.NODE_ENV === "development") {
-          console.warn("messages insert:", insErr.message);
-        }
+        console.error(
+          "INSERT MESSAGES ERROR:",
+          insErr
+        );
+
         return false;
       }
 
       await supabase
         .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
+        .update({
+          updated_at:
+            new Date().toISOString(),
+        })
         .eq("id", conversationId)
         .eq("user_id", user.id);
 
       return true;
-    } catch {
+    } catch (err) {
+      console.error(
+        "REPLACE MESSAGES CATCH:",
+        err
+      );
+
       return false;
     }
   },
@@ -273,16 +432,36 @@ async createConversation(
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) return false;
 
-      const { error } = await supabase
-        .from("conversations")
-        .update({ title, updated_at: new Date().toISOString() })
-        .eq("id", conversationId)
-        .eq("user_id", user.id);
+      const { error } =
+        await supabase
+          .from("conversations")
+          .update({
+            title,
+            updated_at:
+              new Date().toISOString(),
+          })
+          .eq("id", conversationId)
+          .eq("user_id", user.id);
 
-      return !error;
-    } catch {
+      if (error) {
+        console.error(
+          "UPDATE TITLE ERROR:",
+          error
+        );
+
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error(
+        "UPDATE TITLE CATCH:",
+        err
+      );
+
       return false;
     }
   },
