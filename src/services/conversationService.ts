@@ -191,86 +191,61 @@ export const conversationService = {
     }
   },
 
-  async createConversation(
-    title: string,
-    mode: string
-  ) {
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+  async createConversation(title: string, mode: string) {
+  try {
+    console.log("=== CREATE CONVERSATION START ===");
 
-      console.log(
-        "CURRENT USER:",
-        user
-      );
+    const authResponse = await supabase.auth.getSession();
 
-      if (userError || !user) {
-        console.error(
-          "AUTH ERROR:",
-          userError
-        );
+    console.log("FULL SESSION:", authResponse);
 
-        return null;
-      }
+    const session = authResponse.data.session;
 
-      const safeMode =
-        mode === "documents"
-          ? "documents"
+    if (!session) {
+      console.error("NO SESSION FOUND");
+      return null;
+    }
+
+    const user = session.user;
+
+    console.log("USER:", user);
+
+    const safeMode =
+      mode === "documents"
+        ? "documents"
+        : mode === "analytics"
+          ? "general"
           : "general";
 
-      const insertPayload = {
+    console.log("INSERTING:", {
+      user_id: user.id,
+      title,
+      mode: safeMode,
+    });
+
+    const { data, error } = await supabase
+      .from("conversations")
+      .insert({
         user_id: user.id,
         title,
         mode: safeMode,
-      };
+      })
+      .select()
+      .single();
 
-      console.log(
-        "INSERT PAYLOAD:",
-        insertPayload
-      );
-
-      const { data, error } =
-        await supabase
-          .from("conversations")
-          .insert(insertPayload)
-          .select()
-          .single();
-
-      if (error) {
-        console.error(
-          "SUPABASE INSERT ERROR:",
-          error
-        );
-
-        console.error(
-          "FULL INSERT ERROR:",
-          JSON.stringify(
-            error,
-            null,
-            2
-          )
-        );
-
-        return null;
-      }
-
-      console.log(
-        "CONVERSATION CREATED:",
-        data
-      );
-
-      return data;
-    } catch (err) {
-      console.error(
-        "CREATE CONVERSATION ERROR:",
-        err
-      );
-
+    if (error) {
+      console.error("SUPABASE INSERT ERROR:", error);
       return null;
     }
-  },
+
+    console.log("SUCCESS:", data);
+
+    return data;
+  } catch (err) {
+    console.error("CREATE CONVERSATION CRASH:", err);
+    return null;
+  }
+},
 
   async deleteConversation(
     id: string
