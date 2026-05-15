@@ -13,6 +13,10 @@ import type { UploadedDocument } from "@/lib/documentTypes";
 import { useToast } from "@/providers/ToastProvider";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { conversationService } from "@/services/conversationService";
+import {
+  createConversation,
+  saveMessage,
+} from "@/lib/chatService";
 import type {
   ChatMessage as ChatMessageType,
   RetrievedChunk,
@@ -77,8 +81,13 @@ async function fetchSearchChunks(query: string): Promise<RetrievedChunk[]> {
 }
 
 function ChatWorkspace() {
-  const { mode, selectedDocumentId, setSelectedDocumentId, selectedConversationId, setSelectedConversation } =
-    useWorkspaceStore();
+  const {
+    mode,
+    selectedDocumentId,
+    setSelectedDocumentId,
+    selectedConversationId,
+    setSelectedConversation,
+  } = useWorkspaceStore();
   const { stream } = useStreamMessage();
   const { addToast } = useToast();
 
@@ -127,7 +136,6 @@ function ChatWorkspace() {
         addToast("Failed to load conversation", "error");
         setMessages([createWelcomeMessage()]);
         setSelectedConversation(null);
-      } finally {
       }
     };
 
@@ -164,8 +172,9 @@ function ChatWorkspace() {
     setMessages([createWelcomeMessage()]);
     setStreamingContent("");
     setIsLoading(false);
+    setSelectedConversation(null);
     addToast("Chat cleared", "info");
-  }, [addToast]);
+  }, [addToast, setSelectedConversation]);
 
   const streamGroqChat = useCallback(
     async (
@@ -239,6 +248,21 @@ function ChatWorkspace() {
                   : undefined;
 
             if (fullResponse.trim()) {
+              // Save assistant message to persistent storage
+              try {
+                if (selectedConversationId) {
+                  void saveMessage(
+                    selectedConversationId,
+                    "assistant",
+                    fullResponse.trim()
+                  ).catch((error) => {
+                    console.error("Failed to save assistant message:", error);
+                  });
+                }
+              } catch (error) {
+                console.error("Failed to save assistant message:", error);
+              }
+
               setMessages((prev) => [
                 ...prev,
                 {
@@ -282,7 +306,7 @@ function ChatWorkspace() {
         setIsLoading(false);
       }
     },
-    [addToast, stream]
+    [addToast, stream, selectedConversationId]
   );
 
   const streamDocumentQA = useCallback(
@@ -331,6 +355,21 @@ function ChatWorkspace() {
             },
             onComplete: () => {
               if (fullResponse.trim()) {
+                // Save document QA response to persistent storage
+                try {
+                  if (selectedConversationId) {
+                    void saveMessage(
+                      selectedConversationId,
+                      "assistant",
+                      fullResponse.trim()
+                    ).catch((error) => {
+                      console.error("Failed to save document QA response:", error);
+                    });
+                  }
+                } catch (error) {
+                  console.error("Failed to save document QA response:", error);
+                }
+
                 setMessages((prev) => [
                   ...prev,
                   {
@@ -376,7 +415,7 @@ function ChatWorkspace() {
         setIsLoading(false);
       }
     },
-    [addToast, selectedDocumentId, stream]
+    [addToast, selectedDocumentId, stream, selectedConversationId]
   );
 
   const runWarehouseSql = useCallback(
@@ -420,6 +459,21 @@ function ChatWorkspace() {
             ? "_No narrative returned._"
             : `**Analytics guardrail**\n\n${data.error ?? "Unable to run SQL analytics."}`);
 
+        // Save SQL analytics response to persistent storage
+        try {
+          if (selectedConversationId) {
+            void saveMessage(
+              selectedConversationId,
+              "assistant",
+              narrative
+            ).catch((error) => {
+              console.error("Failed to save SQL analytics response:", error);
+            });
+          }
+        } catch (error) {
+          console.error("Failed to save SQL analytics response:", error);
+        }
+
         setMessages((prev) => [
           ...prev,
           {
@@ -451,7 +505,7 @@ function ChatWorkspace() {
         setIsLoading(false);
       }
     },
-    [addToast]
+    [addToast, selectedConversationId]
   );
 
   const runHybridAnalyticsDocs = useCallback(
@@ -516,6 +570,28 @@ function ChatWorkspace() {
     async (messageText: string, skipUserEcho = false) => {
       if (!messageText.trim()) return;
       const trimmed = messageText.trim();
+      let activeConversationId = selectedConversationId;
+
+      // Create conversation if none exists
+      try {
+        if (!activeConversationId) {
+          const conversation = await createConversation();
+          activeConversationId = conversation.id;
+          setSelectedConversation(activeConversationId);
+        }
+        // Save user message to persistent storage
+       if (activeConversationId) {
+
+  await saveMessage(activeConversationId, "user", trimmed);
+
+}
+      } catch (error) {
+        console.error("Conversation setup failed:", error);
+        addToast(
+          "Could not initialize persistent conversation.",
+          "error"
+        );
+      }
 
       if (mode === "analytics") {
         await runWarehouseSql(trimmed, skipUserEcho);
@@ -596,7 +672,9 @@ function ChatWorkspace() {
       mode,
       runHybridAnalyticsDocs,
       runWarehouseSql,
+      selectedConversationId,
       selectedDocumentId,
+      setSelectedConversation,
       streamDocumentQA,
       streamGroqChat,
     ]
