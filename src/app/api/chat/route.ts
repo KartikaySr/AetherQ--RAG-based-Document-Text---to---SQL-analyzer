@@ -1,172 +1,150 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import Groq from "groq-sdk";
 
-import { createAuthErrorResponse, getUserFromRequest } from "@/lib/auth-helpers";
-import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
-const SYSTEM_BASE =
-  "You are AetherQ, an advanced enterprise AI platform created under Mindineers Labs. You answer intelligently, professionally, and conversationally with markdown formatting (headings, bullets, tables when useful). When document retrieval context is provided, ground statements in those excerpts and note when information is missing. When analytics context includes SQL summaries or sample rows, interpret them faithfully without inventing extra numbers.";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { user } = await getUserFromRequest();
-    if (!user) {
-      return createAuthErrorResponse();
-    }
+    const body = await req.json();
 
-    if (!process.env.GROQ_API_KEY) {
-      return NextResponse.json(
-        { error: "AI assistant is temporarily unavailable." },
-        { status: 503 }
-      );
-    }
-
-    const body = (await req.json()) as {
+    const {
+      message,
+      analyticsContext,
+      retrievalContext,
+    }: {
       message?: string;
       analyticsContext?: string;
       retrievalContext?: string;
-    };
-    const message = typeof body.message === "string" ? body.message.trim() : "";
+    } = body;
 
-    if (!message) {
-      return NextResponse.json(
-        { error: "Message is required." },
-        { status: 400 }
+    if (!message || !message.trim()) {
+      return new Response(
+        JSON.stringify({
+          error: "Message is required",
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    const analyticsContext =
-      typeof body.analyticsContext === "string"
-        ? body.analyticsContext.slice(0, 14000).trim()
-        : "";
-    const retrievalContext =
-      typeof body.retrievalContext === "string"
-        ? body.retrievalContext.slice(0, 14000).trim()
-        : "";
+    let systemPrompt = `
+You are AetherQ, an enterprise AI intelligence system built by Mindineers Labs.
 
-    const systemPieces = [SYSTEM_BASE];
+Your responsibilities:
+- Answer professionally and clearly
+- Help with analytics, enterprise reasoning, and documents
+- Use provided SQL and retrieval context when available
+- Keep answers concise but intelligent
+- Format responses in markdown
+`;
+
     if (analyticsContext) {
-      systemPieces.push(
-        "## Warehouse analytics context\n" +
-          analyticsContext +
-          "\nInterpret carefully; totals may be truncated."
-      );
+      systemPrompt += `
+
+SQL ANALYTICS CONTEXT:
+${analyticsContext}
+`;
     }
+
     if (retrievalContext) {
-      systemPieces.push(
-        "## Verified document excerpts\n" +
-          retrievalContext +
-          "\nCite or quote lightly when leveraging these passages."
-      );
+      systemPrompt += `
+
+DOCUMENT RETRIEVAL CONTEXT:
+${retrievalContext}
+`;
     }
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.7,
+      max_tokens: 2048,
+      stream: true,
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
 
     const encoder = new TextEncoder();
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const response = await fetch(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-              },
-              body: JSON.stringify({
-                model: GROQ_CHAT_MODEL,
-                messages: [
-                  {
-                    role: "system",
-                    content: systemPieces.join("\n\n"),
-                  },
-                  {
-                    role: "user",
-                    content: message,
-                  },
-                ],
-                temperature: 0.55,
-                max_tokens: 1400,
-                stream: true,
-              }),
-            }
-          );
+          for await (const chunk of completion) {
+            const content =
+              chunk.choices?.[0]?.delta?.content || "";
 
-          if (!response.ok) {
-            throw new Error(`Groq API error: ${response.statusText}`);
-          }
-
-          const reader = response.body?.getReader();
-          if (!reader) {
-            throw new Error("No response body");
-          }
-
-          const decoder = new TextDecoder();
-          let buffer = "";
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              if (line.startsWith("data: ")) {
-                const data = line.slice(6);
-
-                if (data === "[DONE]") {
-                  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                  continue;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content || "";
-
-                  if (content) {
-                    const token = content.replace(/\n/g, "\\n");
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({ content: token })}\n\n`)
-                    );
-                  }
-                } catch {
-                  // Skip malformed lines
-                }
-              }
+            if (content) {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    content,
+                  })}\n\n`
+                )
+              );
             }
           }
 
-          controller.close();
-        } catch (error) {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Chat stream error:", error);
-          }
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({
-                error:
-                  "Something went wrong while generating the response. Please try again.",
+                done: true,
               })}\n\n`
             )
           );
+
+          controller.close();
+        } catch (streamError) {
+          console.error("Streaming error:", streamError);
+
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                error: "Streaming failed",
+              })}\n\n`
+            )
+          );
+
           controller.close();
         }
       },
     });
 
-    return new NextResponse(stream, {
+    return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       },
     });
-  } catch {
-    return NextResponse.json(
+  } catch (error) {
+    console.error("CHAT API ERROR:", error);
+
+    return new Response(
+      JSON.stringify({
+        error: "Internal server error",
+      }),
       {
-        error: "AetherQ AI server encountered an error.",
-      },
-      { status: 500 }
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
   }
 }
