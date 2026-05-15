@@ -119,37 +119,59 @@ export const conversationService = {
     }
   },
 
-  async createConversation(
-    title: string,
-    mode: ConversationWorkspaceMode = "general"
-  ): Promise<ConversationSummary | null> {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
+async createConversation(
+  title: string,
+  mode: string
+) {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-      const { data, error } = await supabase
-        .from("conversations")
-        .insert({
-          title,
-          user_id: user.id,
-          mode: modeForInsert(mode),
-        })
-        .select("id, title, updated_at")
-        .single();
+    if (userError || !user) {
+      console.error(
+        "AUTH ERROR:",
+        userError
+      );
 
-      if (error || !data) return null;
-
-      return {
-        id: data.id,
-        title: data.title,
-        updatedAt: new Date(data.updated_at),
-      };
-    } catch {
       return null;
     }
-  },
+
+    const safeMode =
+      mode === "documents"
+        ? "documents"
+        : "general";
+
+    const { data, error } = await supabase
+      .from("conversations")
+      .insert({
+        user_id: user.id,
+        title,
+        mode: safeMode,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error(
+        "SUPABASE INSERT ERROR:",
+        error
+      );
+
+      return null;
+    }
+
+    return data;
+  } catch (err) {
+    console.error(
+      "CREATE CONVERSATION ERROR:",
+      err
+    );
+
+    return null;
+  }
+},
 
   async deleteConversation(id: string): Promise<boolean> {
     try {
