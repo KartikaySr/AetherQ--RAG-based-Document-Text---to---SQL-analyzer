@@ -18,7 +18,6 @@ export async function GET() {
 
   const coreAuthReady =
     checks.nextPublicSupabaseUrl && checks.nextPublicSupabaseAnonKey;
-  const aiReady = checks.groqApiKey && checks.huggingfaceApiKey;
   const analyticsReady = checks.databaseUrl;
 
   return NextResponse.json({

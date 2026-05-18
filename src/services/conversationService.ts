@@ -37,14 +37,6 @@ function normalizeMode(
   return "general";
 }
 
-/** DB constraint may only allow general | documents */
-function modeForInsert(
-  mode: ConversationWorkspaceMode
-): "general" | "documents" {
-  if (mode === "documents") return "documents";
-  return "general";
-}
-
 function rowToChatMessage(
   row: DbMessageRow
 ): ChatMessage {

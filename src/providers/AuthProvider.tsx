@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase-browser";
 
@@ -8,11 +8,13 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isGuest: boolean;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithPassword: (email: string, password: string) => Promise<void>;
   signInWithOAuth: (provider: "google" | "github") => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  continueAsGuest: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,14 +22,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const supabaseRef = useRef<SupabaseClient | null>(null);
 
   useEffect(() => {
     const client = createClient();
-    setSupabase(client);
+    supabaseRef.current = client;
 
     const initializeAuth = async () => {
       try {
+        // Check for guest mode from localStorage
+        const guestMode = localStorage.getItem("aetherq_guest_mode") === "true";
+        if (guestMode) {
+          setIsGuest(true);
+          setIsLoading(false);
+          return;
+        }
+
         const {
           data: { user },
         } = await client.auth.getUser();
@@ -54,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const client = supabase ?? createClient();
+    const client = supabaseRef.current ?? createClient();
     const { error } = await client.auth.signUp({
       email,
       password,
@@ -67,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithPassword = async (email: string, password: string) => {
-    const client = supabase ?? createClient();
+    const client = supabaseRef.current ?? createClient();
     const { error } = await client.auth.signInWithPassword({
       email,
       password,
@@ -77,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithOAuth = async (provider: "google" | "github") => {
-    const client = supabase ?? createClient();
+    const client = supabaseRef.current ?? createClient();
     const { error } = await client.auth.signInWithOAuth({
       provider,
       options: {
@@ -89,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetPasswordForEmail = async (email: string) => {
-    const client = supabase ?? createClient();
+    const client = supabaseRef.current ?? createClient();
     const { error } = await client.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback`,
     });
@@ -97,10 +108,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    const client = supabase ?? createClient();
-    const { error } = await client.auth.signOut();
+    const client = supabaseRef.current ?? createClient();
+    
+    // Clear guest mode if active
+    if (isGuest) {
+      localStorage.removeItem("aetherq_guest_mode");
+      setIsGuest(false);
+      setUser(null);
+      return;
+    }
 
+    const { error } = await client.auth.signOut();
     if (error) throw error;
+  };
+
+  const continueAsGuest = () => {
+    localStorage.setItem("aetherq_guest_mode", "true");
+    setIsGuest(true);
+    setUser(null);
   };
 
   return (
@@ -108,12 +133,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isLoading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user || isGuest,
+        isGuest,
         signUp,
         signInWithPassword,
         signInWithOAuth,
         resetPasswordForEmail,
         signOut,
+        continueAsGuest,
       }}
     >
       {children}

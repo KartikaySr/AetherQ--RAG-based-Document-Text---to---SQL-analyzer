@@ -7,6 +7,20 @@ const supabase = createClient();
  * @returns The created conversation object with id
  */
 export async function createConversation() {
+  // Check if user is in guest mode
+  const isGuest = localStorage.getItem("aetherq_guest_mode") === "true";
+  if (isGuest) {
+    // Return a temporary guest conversation object
+    return {
+      id: `guest-${Date.now()}`,
+      user_id: "guest",
+      title: "Guest Conversation",
+      mode: "general",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -42,6 +56,13 @@ export async function saveMessage(
   role: string,
   content: string
 ) {
+  // Check if user is in guest mode - don't save guest messages to DB
+  const isGuest = localStorage.getItem("aetherq_guest_mode") === "true";
+  if (isGuest || conversationId.startsWith("guest-")) {
+    // Messages are not persisted for guests - only kept in memory
+    return;
+  }
+
   const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     role,

@@ -13,6 +13,7 @@ import {
   BarChart3,
   Zap,
   Code2,
+  LogIn,
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -46,6 +47,7 @@ function LoginContent() {
     signInWithPassword,
     signInWithOAuth,
     resetPasswordForEmail,
+    continueAsGuest,
   } = useAuth();
   const { addToast } = useToast();
 
@@ -101,6 +103,12 @@ function LoginContent() {
     } finally {
       setForgotSending(false);
     }
+  };
+
+  const handleGuestMode = () => {
+    continueAsGuest();
+    addToast("Welcome! You're using AetherQ in guest mode.", "info");
+    router.push(redirect);
   };
 
   return (
@@ -281,6 +289,14 @@ function LoginContent() {
             >
               <Code2 className="h-4 w-4 opacity-80" />
               Continue with GitHub
+            </button>
+            <button
+              type="button"
+              onClick={handleGuestMode}
+              className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 text-white py-3 rounded-lg transition-all duration-300 font-medium text-sm"
+            >
+              <LogIn className="h-4 w-4 opacity-80" />
+              Continue as Guest
             </button>
           </div>
 
