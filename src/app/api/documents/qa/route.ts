@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { generateEmbedding, toPgVector } from "@/lib/generateEmbedding";
 import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
+import { createAuthErrorResponse, getUserFromRequest } from "@/lib/auth-helpers";
 
 type QARequest = {
   documentId?: string;
@@ -54,6 +55,10 @@ function formatChunks(rows: MatchDocumentChunkRow[]) {
   }));
 }
 
+function isMissingColumn(error: { message?: string; code?: string } | null) {
+  return error?.code === "42703" || error?.message?.includes("does not exist");
+}
+
 export async function POST(req: Request) {
   try {
     if (!process.env.GROQ_API_KEY) {
@@ -92,7 +97,11 @@ export async function POST(req: Request) {
     const matchCount = Math.min(Math.max(body.matchCount ?? 5, 1), 10);
     const embedding = await generateEmbedding(query);
     const queryEmbedding = toPgVector(embedding);
-    const { supabase } = await import("@/lib/supabase");
+    const { user, supabase } = await getUserFromRequest();
+
+    if (!user) {
+      return createAuthErrorResponse();
+    }
 
     let results: MatchDocumentChunkRow[] = [];
     let dataError: Error | null = null;
@@ -105,10 +114,18 @@ export async function POST(req: Request) {
 
     if (rpcResponse.error) {
       if (rpcResponse.error.message?.includes("match_document_chunks_by_document")) {
-        const fallback = await supabase
+        let fallback = await supabase
           .from("document_chunks")
           .select("chunk_text,embedding")
+          .eq("user_id", user.id)
           .eq("document_id", documentId);
+
+        if (isMissingColumn(fallback.error)) {
+          fallback = await supabase
+            .from("document_chunks")
+            .select("chunk_text,embedding")
+            .eq("document_id", documentId);
+        }
 
         if (fallback.error || !fallback.data) {
           return NextResponse.json(

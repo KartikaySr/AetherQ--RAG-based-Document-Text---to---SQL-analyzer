@@ -43,10 +43,73 @@ function createExtractionPayload(
   };
 }
 
+function isMissingColumn(error: { message?: string; code?: string } | null) {
+  return error?.code === "42703" || error?.message?.includes("does not exist");
+}
+
+async function upsertExtraction(
+  supabase: Awaited<ReturnType<typeof getUserFromRequest>>["supabase"],
+  row: {
+    document_id: string;
+    extracted_text: string;
+    page_count: number;
+    extraction_status: "completed" | "failed";
+    user_id: string;
+  }
+) {
+  const query = supabase
+    .from("document_extractions")
+    .upsert(row)
+    .select(
+      "id,document_id,extracted_text,page_count,extraction_status,created_at"
+    )
+    .single();
+  const result = await query;
+
+  if (!isMissingColumn(result.error)) return result;
+
+  const legacyRow = {
+    document_id: row.document_id,
+    extracted_text: row.extracted_text,
+    page_count: row.page_count,
+    extraction_status: row.extraction_status,
+  };
+  return supabase
+    .from("document_extractions")
+    .upsert(legacyRow)
+    .select(
+      "id,document_id,extracted_text,page_count,extraction_status,created_at"
+    )
+    .single();
+}
+
+async function insertChunk(
+  supabase: Awaited<ReturnType<typeof getUserFromRequest>>["supabase"],
+  row: {
+    document_id: string;
+    chunk_text: string;
+    chunk_index: number;
+    embedding: number[];
+    user_id: string;
+  }
+) {
+  const result = await supabase.from("document_chunks").insert(row);
+
+  if (!isMissingColumn(result.error)) return result;
+
+  const legacyRow = {
+    document_id: row.document_id,
+    chunk_text: row.chunk_text,
+    chunk_index: row.chunk_index,
+    embedding: row.embedding,
+  };
+  return supabase.from("document_chunks").insert(legacyRow);
+}
+
 export async function POST(req: NextRequest) {
 
   try {
-    const { user } = await getUserFromRequest();
+    const { user, supabase } = await getUserFromRequest();
 
     if (!user) {
       return createAuthErrorResponse();
@@ -78,8 +141,6 @@ export async function POST(req: NextRequest) {
       console.log("STORAGE PATH:", storagePath);
       console.log("FILE TYPE:", fileType);
     }
-
-    const { supabase } = await import("@/lib/supabase");
 
     /*
     =================================
@@ -240,13 +301,12 @@ export async function POST(req: NextRequest) {
         extractError
       );
 
-      await supabase
-        .from("document_extractions")
-        .upsert({
+      await upsertExtraction(supabase, {
           document_id: documentId,
           extracted_text: "",
           page_count: 0,
           extraction_status: "failed",
+          user_id: user.id,
         });
 
       return NextResponse.json(
@@ -299,18 +359,13 @@ export async function POST(req: NextRequest) {
     */
 
     const { data: extractionRecord, error: extractionError } =
-      await supabase
-        .from("document_extractions")
-        .upsert({
-          document_id: documentId,
-          extracted_text: extractedText,
-          page_count: pageCount,
-          extraction_status: "completed",
-        })
-        .select(
-          "id,document_id,extracted_text,page_count,extraction_status,created_at"
-        )
-        .single();
+      await upsertExtraction(supabase, {
+        document_id: documentId,
+        extracted_text: extractedText,
+        page_count: pageCount,
+        extraction_status: "completed",
+        user_id: user.id,
+      });
 
     if (extractionError) {
 
@@ -374,14 +429,13 @@ export async function POST(req: NextRequest) {
 
         const {
           error: vectorError,
-        } = await supabase
-          .from("document_chunks")
-          .insert({
+        } = await insertChunk(supabase, {
             document_id: documentId,
             chunk_text: chunk.text,
             chunk_index:
               chunk.chunkIndex,
             embedding,
+            user_id: user.id,
           });
 
         if (vectorError) {

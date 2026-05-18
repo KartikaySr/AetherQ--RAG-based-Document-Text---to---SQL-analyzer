@@ -53,11 +53,20 @@ function rowToChatMessage(
   };
 }
 
+function isGuestMode() {
+  return (
+    typeof window !== "undefined" &&
+    localStorage.getItem("aetherq_guest_mode") === "true"
+  );
+}
+
 export const conversationService = {
   async getConversations(): Promise<
     ConversationSummary[]
   > {
     try {
+      if (isGuestMode()) return [];
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -102,6 +111,8 @@ export const conversationService = {
     id: string
   ): Promise<LoadedConversation | null> {
     try {
+      if (isGuestMode() || id.startsWith("guest-")) return null;
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -185,6 +196,18 @@ export const conversationService = {
 
   async createConversation(title: string, mode: string) {
   try {
+    if (isGuestMode()) {
+      const now = new Date().toISOString();
+      return {
+        id: `guest-${Date.now()}-${crypto.randomUUID()}`,
+        user_id: "guest",
+        title,
+        mode,
+        created_at: now,
+        updated_at: now,
+      };
+    }
+
     console.log("=== CREATE CONVERSATION START ===");
 
     const authResponse = await supabase.auth.getSession();
@@ -243,6 +266,8 @@ export const conversationService = {
     id: string
   ): Promise<boolean> {
     try {
+      if (isGuestMode() || id.startsWith("guest-")) return true;
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -281,6 +306,8 @@ export const conversationService = {
     messages: ChatMessage[]
   ): Promise<boolean> {
     try {
+      if (isGuestMode() || conversationId.startsWith("guest-")) return true;
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -396,6 +423,8 @@ export const conversationService = {
     title: string
   ): Promise<boolean> {
     try {
+      if (isGuestMode() || conversationId.startsWith("guest-")) return true;
+
       const {
         data: { user },
       } = await supabase.auth.getUser();

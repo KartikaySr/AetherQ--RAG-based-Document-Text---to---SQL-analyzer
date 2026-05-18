@@ -131,6 +131,7 @@ function ChatWorkspace() {
   // Load selected conversation from Supabase
   useEffect(() => {
     if (!selectedConversationId) return;
+    if (selectedConversationId.startsWith("guest-")) return;
 
     const loadConversation = async () => {
       try {

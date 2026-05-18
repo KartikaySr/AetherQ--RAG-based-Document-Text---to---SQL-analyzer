@@ -16,6 +16,10 @@ const DOCUMENTS_TABLE = "documents_metadata";
 const EXTRACTIONS_TABLE = "document_extractions";
 const CHUNKS_TABLE = "document_chunks";
 
+function isMissingColumn(error: { message?: string; code?: string } | null) {
+  return error?.code === "42703" || error?.message?.includes("does not exist");
+}
+
 export async function GET() {
   try {
     const { user, supabase } = await getUserFromRequest();
@@ -52,13 +56,24 @@ export async function GET() {
       });
     }
 
-    const { data: extractions, error: extractionsError } = await supabase
+    let { data: extractions, error: extractionsError } = await supabase
       .from(EXTRACTIONS_TABLE)
       .select(
         "id,document_id,extracted_text,page_count,extraction_status,created_at"
       )
       .eq("user_id", user.id)
       .in("document_id", documentIds);
+
+    if (isMissingColumn(extractionsError)) {
+      const retry = await supabase
+        .from(EXTRACTIONS_TABLE)
+        .select(
+          "id,document_id,extracted_text,page_count,extraction_status,created_at"
+        )
+        .in("document_id", documentIds);
+      extractions = retry.data;
+      extractionsError = retry.error;
+    }
 
     if (extractionsError) {
       return NextResponse.json(
@@ -79,11 +94,20 @@ export async function GET() {
       ])
     );
 
-    const { data: chunks, error: chunksError } = await supabase
+    let { data: chunks, error: chunksError } = await supabase
       .from(CHUNKS_TABLE)
       .select("document_id")
       .eq("user_id", user.id)
       .in("document_id", documentIds);
+
+    if (isMissingColumn(chunksError)) {
+      const retry = await supabase
+        .from(CHUNKS_TABLE)
+        .select("document_id")
+        .in("document_id", documentIds);
+      chunks = retry.data;
+      chunksError = retry.error;
+    }
 
     if (chunksError) {
       return NextResponse.json(
