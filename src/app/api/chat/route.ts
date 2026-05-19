@@ -1,12 +1,20 @@
 import { NextRequest } from "next/server";
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function getGroqClient() {
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY is not configured.");
+  }
+
+  return new Groq({ apiKey });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,8 +71,8 @@ ${retrievalContext}
 `;
     }
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+    const completion = await getGroqClient().chat.completions.create({
+      model: GROQ_CHAT_MODEL,
       temperature: 0.7,
       max_tokens: 2048,
       stream: true,

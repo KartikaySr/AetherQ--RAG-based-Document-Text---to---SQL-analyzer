@@ -59,9 +59,15 @@ function isMissingColumn(error: { message?: string; code?: string } | null) {
   return error?.code === "42703" || error?.message?.includes("does not exist");
 }
 
+function getGroqApiKey() {
+  return process.env.GROQ_API_KEY?.trim();
+}
+
 export async function POST(req: Request) {
   try {
-    if (!process.env.GROQ_API_KEY) {
+    const groqApiKey = getGroqApiKey();
+
+    if (!groqApiKey) {
       return NextResponse.json(
         { error: "AI assistant is temporarily unavailable." },
         { status: 503 }
@@ -212,7 +218,7 @@ export async function POST(req: Request) {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                Authorization: `Bearer ${groqApiKey}`,
               },
               body: JSON.stringify({
                 model: GROQ_CHAT_MODEL,
@@ -235,7 +241,11 @@ export async function POST(req: Request) {
           );
 
           if (!response.ok) {
-            throw new Error(`Groq API error: ${response.statusText}`);
+            const detail = await response.text().catch(() => "");
+            const message = detail
+              ? `Groq API error ${response.status}: ${detail}`
+              : `Groq API error ${response.status}: ${response.statusText}`;
+            throw new Error(message);
           }
 
           const reader = response.body?.getReader();
@@ -297,7 +307,10 @@ export async function POST(req: Request) {
             encoder.encode(
               `data: ${JSON.stringify({
                 error:
-                  "Something went wrong while analyzing the document. Please try again.",
+                  process.env.NODE_ENV === "development" &&
+                  error instanceof Error
+                    ? error.message
+                    : "Something went wrong while analyzing the document. Please try again.",
               })}\n\n`
             )
           );
