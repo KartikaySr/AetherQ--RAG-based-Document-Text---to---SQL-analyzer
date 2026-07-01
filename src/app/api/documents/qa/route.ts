@@ -4,7 +4,12 @@ import { NextResponse } from "next/server";
 
 import { generateEmbedding, toPgVector } from "@/lib/generateEmbedding";
 import { GROQ_CHAT_MODEL } from "@/lib/groqModel";
-import { createAuthErrorResponse, getUserFromRequest } from "@/lib/auth-helpers";
+import {
+  createAuthErrorResponse,
+  getUserFromRequest,
+  isGuestRequestUser,
+} from "@/lib/auth-helpers";
+import { getGuestChunks } from "@/lib/guestDocuments";
 
 type QARequest = {
   documentId?: string;
@@ -100,81 +105,86 @@ export async function POST(req: Request) {
       );
     }
 
-    const matchCount = Math.min(Math.max(body.matchCount ?? 5, 1), 10);
-    const embedding = await generateEmbedding(query);
-    const queryEmbedding = toPgVector(embedding);
     const { user, supabase } = await getUserFromRequest();
 
     if (!user) {
       return createAuthErrorResponse();
     }
 
+    const matchCount = Math.min(Math.max(body.matchCount ?? 5, 1), 10);
     let results: MatchDocumentChunkRow[] = [];
     let dataError: Error | null = null;
 
-    const rpcResponse = await supabase.rpc("match_document_chunks_by_document", {
-      document_id: documentId,
-      query_embedding: queryEmbedding,
-      match_count: matchCount,
-    });
+    if (isGuestRequestUser(user)) {
+      results = getGuestChunks(user.id, documentId).slice(0, matchCount);
+    } else {
+      const embedding = await generateEmbedding(query);
+      const queryEmbedding = toPgVector(embedding);
 
-    if (rpcResponse.error) {
-      if (rpcResponse.error.message?.includes("match_document_chunks_by_document")) {
-        let fallback = await supabase
-          .from("document_chunks")
-          .select("chunk_text,embedding")
-          .eq("user_id", user.id)
-          .eq("document_id", documentId);
+      const rpcResponse = await supabase.rpc("match_document_chunks_by_document", {
+        document_id: documentId,
+        query_embedding: queryEmbedding,
+        match_count: matchCount,
+      });
 
-        if (isMissingColumn(fallback.error)) {
-          fallback = await supabase
+      if (rpcResponse.error) {
+        if (rpcResponse.error.message?.includes("match_document_chunks_by_document")) {
+          let fallback = await supabase
             .from("document_chunks")
             .select("chunk_text,embedding")
+            .eq("user_id", user.id)
             .eq("document_id", documentId);
+
+          if (isMissingColumn(fallback.error)) {
+            fallback = await supabase
+              .from("document_chunks")
+              .select("chunk_text,embedding")
+              .eq("document_id", documentId);
+          }
+
+          if (fallback.error || !fallback.data) {
+            return NextResponse.json(
+              {
+                error:
+                  fallback.error?.message ||
+                  "Unable to load document context for analysis.",
+              },
+              {
+                status: 500,
+              }
+            );
+          }
+
+          const fallbackRows = (fallback.data as Array<{
+            chunk_text: string;
+            embedding: unknown;
+          }>)
+            .map((row) => ({
+              chunk_text: row.chunk_text,
+              embedding: parseEmbedding(row.embedding) ?? [],
+            }))
+            .filter((row) => row.embedding.length === embedding.length)
+            .map((row) => ({
+              chunkText: row.chunk_text,
+              similarity: cosineSimilarity(embedding, row.embedding),
+            }))
+            .sort((a, b) => b.similarity - a.similarity)
+            .slice(0, matchCount)
+            .map((row) => ({
+              chunk_id: "",
+              document_id: documentId,
+              document_name: "",
+              chunk_text: row.chunkText,
+              similarity: row.similarity,
+            }));
+
+          results = fallbackRows;
+        } else {
+          dataError = rpcResponse.error;
         }
-
-        if (fallback.error || !fallback.data) {
-          return NextResponse.json(
-            {
-              error:
-                fallback.error?.message ||
-                "Unable to load document context for analysis.",
-            },
-            {
-              status: 500,
-            }
-          );
-        }
-
-        const fallbackRows = (fallback.data as Array<{
-          chunk_text: string;
-          embedding: unknown;
-        }>)
-          .map((row) => ({
-            chunk_text: row.chunk_text,
-            embedding: parseEmbedding(row.embedding) ?? [],
-          }))
-          .filter((row) => row.embedding.length === embedding.length)
-          .map((row) => ({
-            chunkText: row.chunk_text,
-            similarity: cosineSimilarity(embedding, row.embedding),
-          }))
-          .sort((a, b) => b.similarity - a.similarity)
-          .slice(0, matchCount)
-          .map((row) => ({
-            chunk_id: "",
-            document_id: documentId,
-            document_name: "",
-            chunk_text: row.chunkText,
-            similarity: row.similarity,
-          }));
-
-        results = fallbackRows;
       } else {
-        dataError = rpcResponse.error;
+        results = (rpcResponse.data ?? []) as MatchDocumentChunkRow[];
       }
-    } else {
-      results = (rpcResponse.data ?? []) as MatchDocumentChunkRow[];
     }
 
     if (dataError) {

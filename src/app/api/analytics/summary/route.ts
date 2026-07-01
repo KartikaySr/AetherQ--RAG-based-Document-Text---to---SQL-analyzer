@@ -55,6 +55,34 @@ const SAFE_HEADCOUNT = `
   LIMIT 10
 `;
 
+const DEMO_KPIS = {
+  totalRevenue: "8425000.00",
+  employeeCount: 248,
+  skusBelowReorder: 7,
+  avgFreightUsd: "1840.00",
+  revenueByQuarter: [
+    { name: "Q1", revenue: 1750000 },
+    { name: "Q2", revenue: 2040000 },
+    { name: "Q3", revenue: 2195000 },
+    { name: "Q4", revenue: 2440000 },
+  ],
+  revenueByRegion: [
+    { name: "North America", revenue: 3120000 },
+    { name: "Europe", revenue: 2265000 },
+    { name: "Asia Pacific", revenue: 1940000 },
+    { name: "Middle East", revenue: 680000 },
+    { name: "Latin America", revenue: 420000 },
+  ],
+  headcountByDepartment: [
+    { name: "Engineering", people: 74 },
+    { name: "Operations", people: 52 },
+    { name: "Sales", people: 46 },
+    { name: "Support", people: 33 },
+    { name: "Finance", people: 22 },
+    { name: "People", people: 21 },
+  ],
+};
+
 export async function GET() {
   const { user } = await getUserFromRequest();
   if (!user) {
@@ -63,13 +91,7 @@ export async function GET() {
 
   const pool = getAnalyticsDbPool();
   if (!pool) {
-    return NextResponse.json(
-      {
-        error: "DATABASE_URL not configured.",
-        kpis: null,
-      },
-      { status: 503 }
-    );
+    return NextResponse.json({ kpis: DEMO_KPIS, demo: true });
   }
 
   try {
@@ -114,6 +136,10 @@ export async function GET() {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Summary query failed.";
-    return NextResponse.json({ error: message, kpis: null }, { status: 500 });
+    return NextResponse.json({
+      kpis: DEMO_KPIS,
+      demo: true,
+      warning: message,
+    });
   }
 }

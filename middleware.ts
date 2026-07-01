@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+const GUEST_MODE_COOKIE = "aetherq_guest_mode";
+const GUEST_ID_COOKIE = "aetherq_guest_id";
+
 const protectedRoutes = ["/workspace", "/documents", "/chat", "/analytics", "/settings"];
 
 export async function middleware(request: NextRequest) {
@@ -49,9 +52,12 @@ export async function middleware(request: NextRequest) {
   // Check if accessing protected route without authentication
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
+  const isGuest =
+    request.cookies.get(GUEST_MODE_COOKIE)?.value === "true" &&
+    Boolean(request.cookies.get(GUEST_ID_COOKIE)?.value);
 
   // Redirect unauthenticated users accessing protected routes to login
-  if (isProtectedRoute && !user) {
+  if (isProtectedRoute && !user && !isGuest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -77,4 +83,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|public).*)",
   ],
 };
-

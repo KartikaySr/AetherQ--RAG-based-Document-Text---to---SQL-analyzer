@@ -57,6 +57,8 @@ function LoginContent() {
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [forgotSending, setForgotSending] = useState(false);
+  const [showGuestName, setShowGuestName] = useState(false);
+  const [guestName, setGuestName] = useState("");
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,9 +107,15 @@ function LoginContent() {
     }
   };
 
-  const handleGuestMode = () => {
-    continueAsGuest();
-    addToast("Welcome! You're using AetherQ in guest mode.", "info");
+  const handleGuestMode = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const name = guestName.trim();
+    if (!name) {
+      addToast("Add your name to continue as guest.", "info");
+      return;
+    }
+    continueAsGuest(name);
+    addToast(`Welcome, ${name}. Guest workspace is ready.`, "info");
     router.push(redirect);
   };
 
@@ -292,7 +300,7 @@ function LoginContent() {
             </button>
             <button
               type="button"
-              onClick={handleGuestMode}
+              onClick={() => setShowGuestName(true)}
               className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 text-white py-3 rounded-lg transition-all duration-300 font-medium text-sm"
             >
               <LogIn className="h-4 w-4 opacity-80" />
@@ -311,6 +319,50 @@ function LoginContent() {
           </p>
         </div>
       </motion.div>
+
+      {showGuestName ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <motion.form
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            onSubmit={handleGuestMode}
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0d0d0d] p-6 shadow-2xl shadow-cyan-500/15"
+          >
+            <h2 className="text-xl font-semibold text-white">
+              Continue as guest
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/55">
+              Add a display name for this one-time local demo workspace.
+            </p>
+            <label className="mt-5 block text-sm font-medium text-white/75">
+              Your name
+            </label>
+            <input
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
+              autoFocus
+              maxLength={40}
+              placeholder="Guest name"
+              className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/60"
+            />
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowGuestName(false)}
+                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/75 transition hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                Enter
+              </button>
+            </div>
+          </motion.form>
+        </div>
+      ) : null}
     </div>
   );
 }

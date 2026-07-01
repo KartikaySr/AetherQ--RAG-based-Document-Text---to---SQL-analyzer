@@ -12,7 +12,6 @@ import {
   UploadCloud,
 } from "lucide-react";
 
-import { supabase } from "../lib/supabase";
 import type { UploadedDocument } from "../lib/documentTypes";
 import { useToast } from "../providers/ToastProvider";
 export type { UploadedDocument } from "../lib/documentTypes";
@@ -31,7 +30,6 @@ type DocumentUploaderProps = {
 
 const MAX_FILE_SIZE_MB = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_MB ?? "25");
 const MAX_FILE_SIZE = Math.max(5, MAX_FILE_SIZE_MB) * 1024 * 1024;
-const DOCUMENTS_BUCKET = "documents";
 const SUPPORTED_MIME_TYPES = {
   "application/pdf": [".pdf"],
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
@@ -44,14 +42,6 @@ const SUPPORTED_MIME_TYPES = {
 } as const;
 const SUPPORTED_EXTENSIONS = [".pdf", ".docx", ".txt", ".md", ".csv", ".json"];
 
-function sanitizeFileName(name: string) {
-  return name
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9._-]/g, "")
-    .toLowerCase();
-}
-
 function isSupportedDocument(file: File) {
   const lowerName = file.name.toLowerCase();
 
@@ -61,17 +51,13 @@ function isSupportedDocument(file: File) {
   );
 }
 
-async function saveMetadata(file: File, storagePath: string) {
-  const response = await fetch("/api/documents", {
+async function uploadDocument(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+
+  const response = await fetch("/api/documents/upload", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: file.name,
-      size: file.size,
-      storage_path: storagePath,
-    }),
+    body: form,
   });
 
   const payload = await response.json();
@@ -130,9 +116,6 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
         return;
       }
 
-      const safeName = sanitizeFileName(file.name) || "document";
-      const storagePath = `documents/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-
       const progressTimer = window.setInterval(() => {
         setItems((current) =>
           current.map((item) =>
@@ -147,23 +130,11 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
       }, 400);
 
       try {
-        const { error } = await supabase.storage
-          .from(DOCUMENTS_BUCKET)
-          .upload(storagePath, file, {
-            cacheControl: "3600",
-            contentType: file.type || "application/octet-stream",
-            upsert: false,
-          });
-
-        if (error) {
-          throw error;
-        }
-
         updateItem(id, {
           progress: 94,
         });
 
-        const document = await saveMetadata(file, storagePath);
+        const document = await uploadDocument(file);
 
         updateItem(id, {
           progress: 100,

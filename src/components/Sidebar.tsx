@@ -9,7 +9,7 @@ import { useToast } from "@/providers/ToastProvider";
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, signOut, isLoading } = useAuth();
+  const { user, guestName, signOut, isLoading, isGuest } = useAuth();
   const { addToast } = useToast();
 
   const handleLogout = async () => {
@@ -93,17 +93,17 @@ export function Sidebar() {
       {!isLoading && (
         <div className="border-t border-white/10 pt-6 space-y-4">
           {/* User Info */}
-          {user && (
+          {(user || isGuest) && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/5">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-sm font-bold text-white">
-                {(user.email?.[0] ?? "?").toUpperCase()}
+                {((isGuest ? guestName : user?.email)?.[0] ?? "G").toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">
-                  {user.email?.split("@")[0]}
+                  {isGuest ? guestName || "Guest" : user?.email?.split("@")[0]}
                 </p>
                 <p className="text-xs text-white/40 truncate">
-                  {user.email}
+                  {isGuest ? "Guest session" : user?.email}
                 </p>
               </div>
             </div>
@@ -122,4 +122,3 @@ export function Sidebar() {
     </aside>
   );
 }
-

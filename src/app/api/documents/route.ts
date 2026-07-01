@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest, createAuthErrorResponse } from "@/lib/auth-helpers";
+import {
+  getUserFromRequest,
+  createAuthErrorResponse,
+  isGuestRequestUser,
+} from "@/lib/auth-helpers";
+import { deleteGuestDocument, listGuestDocuments } from "@/lib/guestDocuments";
 
 type DocumentMetadataRequest = {
   name?: string;
@@ -26,6 +31,12 @@ export async function GET() {
 
     if (!user) {
       return createAuthErrorResponse();
+    }
+
+    if (isGuestRequestUser(user)) {
+      return NextResponse.json({
+        documents: listGuestDocuments(user.id),
+      });
     }
 
     const { data: documents, error: documentsError } = await supabase
@@ -158,6 +169,15 @@ export async function POST(req: NextRequest) {
       return createAuthErrorResponse();
     }
 
+    if (isGuestRequestUser(user)) {
+      return NextResponse.json(
+        {
+          error: "Use /api/documents/upload for guest uploads.",
+        },
+        { status: 400 }
+      );
+    }
+
     const body = (await req.json()) as DocumentMetadataRequest;
 
     if (!body.name || !body.storage_path || typeof body.size !== "number") {
@@ -232,6 +252,14 @@ export async function DELETE(req: NextRequest) {
           status: 400,
         }
       );
+    }
+
+    if (isGuestRequestUser(user)) {
+      const deleted = deleteGuestDocument(user.id, body.id);
+      if (!deleted) {
+        return createAuthErrorResponse(404);
+      }
+      return NextResponse.json({ success: true });
     }
 
     // Verify document belongs to user

@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
 
 import pdf from "pdf-parse";
 
@@ -10,7 +11,12 @@ import mammoth from "mammoth";
 import { chunkDocument } from "@/lib/chunkDocument";
 
 import { generateEmbedding } from "@/lib/generateEmbedding";
-import { getUserFromRequest, createAuthErrorResponse } from "@/lib/auth-helpers";
+import {
+  getUserFromRequest,
+  createAuthErrorResponse,
+  isGuestRequestUser,
+} from "@/lib/auth-helpers";
+import { getGuestDocument, updateGuestExtraction } from "@/lib/guestDocuments";
 
 const MAX_SERVER_FILE_SIZE_MB = Number(process.env.DOCUMENT_MAX_FILE_MB ?? "25");
 const MAX_SERVER_FILE_SIZE_BYTES =
@@ -148,38 +154,44 @@ export async function POST(req: NextRequest) {
     =================================
     */
 
-    const { data: fileData, error: downloadError } =
-      await supabase.storage
-        .from("documents")
-        .download(storagePath);
+    let buffer: Buffer;
 
-    if (downloadError || !fileData) {
+    if (isGuestRequestUser(user)) {
+      const guestDocument = getGuestDocument(user.id, documentId);
+      if (!guestDocument) {
+        return NextResponse.json(
+          { error: "Guest document not found. Upload it again." },
+          { status: 404 }
+        );
+      }
+      buffer = await readFile(guestDocument.file_path);
+    } else {
+      const { data: fileData, error: downloadError } =
+        await supabase.storage
+          .from("documents")
+          .download(storagePath);
 
-      console.error(
-        "SUPABASE DOWNLOAD FAILED:",
-        downloadError
-      );
+      if (downloadError || !fileData) {
 
-      return NextResponse.json(
-        {
-          error: "Could not download file",
-        },
-        {
-          status: 500,
-        }
-      );
+        console.error(
+          "SUPABASE DOWNLOAD FAILED:",
+          downloadError
+        );
 
+        return NextResponse.json(
+          {
+            error: "Could not download file",
+          },
+          {
+            status: 500,
+          }
+        );
+
+      }
+
+      const arrayBuffer = await fileData.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
     }
-
-    /*
-    =================================
-    CONVERT TO NODE BUFFER
-    =================================
-    */
-
-    const arrayBuffer = await fileData.arrayBuffer();
-
-    const buffer = Buffer.from(arrayBuffer);
 
     if (buffer.length > MAX_SERVER_FILE_SIZE_BYTES) {
       return NextResponse.json(
@@ -301,13 +313,22 @@ export async function POST(req: NextRequest) {
         extractError
       );
 
-      await upsertExtraction(supabase, {
+      if (isGuestRequestUser(user)) {
+        updateGuestExtraction(
+          user.id,
+          documentId,
+          createExtractionPayload(documentId, "", 0, "failed", user.id),
+          []
+        );
+      } else {
+        await upsertExtraction(supabase, {
           document_id: documentId,
           extracted_text: "",
           page_count: 0,
           extraction_status: "failed",
           user_id: user.id,
         });
+      }
 
       return NextResponse.json(
         {
@@ -358,14 +379,23 @@ export async function POST(req: NextRequest) {
     =================================
     */
 
-    const { data: extractionRecord, error: extractionError } =
-      await upsertExtraction(supabase, {
-        document_id: documentId,
-        extracted_text: extractedText,
-        page_count: pageCount,
-        extraction_status: "completed",
-        user_id: user.id,
-      });
+    const extractionRecord = createExtractionPayload(
+      documentId,
+      extractedText,
+      pageCount,
+      "completed",
+      user.id
+    );
+
+    const { error: extractionError } = isGuestRequestUser(user)
+      ? { error: null }
+      : await upsertExtraction(supabase, {
+          document_id: documentId,
+          extracted_text: extractedText,
+          page_count: pageCount,
+          extraction_status: "completed",
+          user_id: user.id,
+        });
 
     if (extractionError) {
 
@@ -399,10 +429,12 @@ export async function POST(req: NextRequest) {
     =================================
     */
 
-    await supabase
-      .from("document_chunks")
-      .delete()
-      .eq("document_id", documentId);
+    if (!isGuestRequestUser(user)) {
+      await supabase
+        .from("document_chunks")
+        .delete()
+        .eq("document_id", documentId);
+    }
 
     /*
     =================================
@@ -413,6 +445,10 @@ export async function POST(req: NextRequest) {
     for (const chunk of chunks) {
 
       try {
+
+        if (isGuestRequestUser(user)) {
+          continue;
+        }
 
         if (process.env.NODE_ENV === "development") {
           console.log("GENERATING EMBEDDING:", chunk.chunkIndex);
@@ -460,25 +496,30 @@ export async function POST(req: NextRequest) {
 
     }
 
+    if (isGuestRequestUser(user)) {
+      updateGuestExtraction(
+        user.id,
+        documentId,
+        extractionRecord,
+        chunks.map((chunk, index) => ({
+          chunk_id: `guest-chunk-${documentId}-${index}`,
+          document_id: documentId,
+          document_name: "",
+          chunk_text: chunk.text,
+          similarity: 1 - index * 0.01,
+        }))
+      );
+    }
+
     if (process.env.NODE_ENV === "development") {
       console.log("DOCUMENT PROCESSING COMPLETE");
       console.log("=================================");
     }
 
-    const extraction =
-      extractionRecord ||
-      createExtractionPayload(
-        documentId,
-        extractedText,
-        pageCount,
-        "completed",
-        user.id
-      );
-
     return NextResponse.json({
       success: true,
       message: "Document processed successfully",
-      extraction,
+      extraction: extractionRecord,
       pages: pageCount,
       textLength: extractedText.length,
       chunk_count: chunks.length,
