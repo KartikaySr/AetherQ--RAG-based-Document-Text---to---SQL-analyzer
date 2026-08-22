@@ -1,12 +1,37 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMemo, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, Loader2, Code2 } from "lucide-react";
+import { 
+  Mail, Lock, ArrowRight, Loader2, Code2, 
+  User, Building, Users, Briefcase, Shield, Zap, Sparkles 
+} from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { NeoButton } from "@/components/ui/NeoButton";
+
+function DotsLoader() {
+  return (
+    <span className="inline-flex gap-1">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="h-1.5 w-1.5 rounded-full bg-white"
+          animate={{ opacity: [0.25, 1, 0.25], y: [0, -3, 0] }}
+          transition={{
+            duration: 0.9,
+            repeat: Infinity,
+            delay: i * 0.15,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </span>
+  );
+}
 
 function passwordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -21,20 +46,28 @@ function passwordStrength(pw: string): { score: number; label: string; color: st
     "bg-red-500/60",
     "bg-orange-500/60",
     "bg-amber-500/60",
-    "bg-cyan-500/70",
+    "bg-emerald-500/70",
     "bg-emerald-500/70",
   ];
   return { score: capped, label: labels[capped], color: colors[capped] };
 }
 
-export default function SignUpPage() {
+type Tier = "individual" | "startup" | "enterprise";
+
+function SignUpContent() {
   const router = useRouter();
   const { signUp, signInWithOAuth } = useAuth();
   const { addToast } = useToast();
 
+  const [tier, setTier] = useState<Tier>("individual");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [teamSize, setTeamSize] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
@@ -56,8 +89,18 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      await signUp(email, password);
-      addToast("Account created! Check your email to confirm.", "success");
+      const metadata: Record<string, any> = { full_name: fullName, tier };
+      if (tier === "startup") {
+        metadata.company_name = companyName;
+        metadata.team_size = teamSize;
+      }
+      if (tier === "enterprise") {
+        metadata.company_name = companyName;
+        metadata.job_title = jobTitle;
+      }
+
+      await signUp(email, password, metadata);
+      addToast("Account created! Welcome to AetherQ.", "success");
       router.push("/login");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sign up failed";
@@ -79,111 +122,199 @@ export default function SignUpPage() {
     }
   };
 
+  const InputWrapper = ({ label, icon: Icon, children }: any) => (
+    <div className="space-y-1.5">
+      <label className="block text-[13px] font-medium text-white/70 ml-1">
+        {label}
+      </label>
+      <div className="relative group">
+        <Icon className="absolute left-3.5 top-3.5 w-5 h-5 text-emerald-400/50 group-focus-within:text-emerald-400 transition-colors" />
+        {children}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0">
+    <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-emerald-500/30 selection:text-emerald-100 overflow-x-hidden pt-12 pb-12">
+      
+      {/* Background Lights */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ x: [0, 80, -40, 0], y: [0, -30, 40, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] left-[-10%] w-[380px] md:w-[520px] h-[380px] md:h-[520px] bg-cyan-500/10 rounded-full blur-[90px]"
+          className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[120px] mix-blend-screen"
         />
         <motion.div
           animate={{ x: [0, -60, 50, 0], y: [0, 40, -20, 0] }}
           transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] right-[-10%] w-[380px] md:w-[520px] h-[380px] md:h-[520px] bg-purple-500/10 rounded-full blur-[90px]"
+          className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-amber-600/20 rounded-full blur-[120px] mix-blend-screen"
         />
-        <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className="relative z-10 w-full max-w-[500px] perspective-1000"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-2xl blur-xl" />
-
-        <div className="relative bg-[#0a0a0a]/85 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <div className="mb-5 flex justify-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-purple-200/90">
-              Create workspace
+        <GlassCard className="p-8 md:p-10" interactive={true}>
+          <div className="flex justify-center mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-amber-500 shadow-[0_0_30px_rgba(16,185,129,0.5),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center">
+              <Sparkles className="w-7 h-7 text-white drop-shadow-lg" />
             </div>
           </div>
 
-          <div className="flex justify-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 shadow-lg shadow-cyan-500/20" />
-          </div>
-
-          <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-            Join AetherQ
+          <h1 className="text-3xl font-bold text-center mb-1 text-white tracking-tight">
+            Request Clearance
           </h1>
-          <p className="text-center text-white/50 text-sm mb-8">
-            Your account is private — documents and chats never leave your tenant boundary.
+          <p className="text-center text-white/50 text-sm mb-8 font-light">
+            Join the AetherQ Intelligence Mesh.
           </p>
 
-          <form onSubmit={handleSignUp} className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Email Address
+          <form onSubmit={handleSignUp} className="space-y-6 mb-8">
+            {/* Tier Selection */}
+            <div className="space-y-2">
+              <label className="block text-[13px] font-medium text-white/70 ml-1">
+                Select Account Protocol
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3.5 w-5 h-5 text-cyan-400/60" />
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { id: "individual", label: "Individual", icon: User },
+                    { id: "startup", label: "Startup", icon: Zap },
+                    { id: "enterprise", label: "Enterprise", icon: Shield },
+                  ] as const
+                ).map((t) => {
+                  const Icon = t.icon;
+                  const isActive = tier === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTier(t.id)}
+                      className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border transition-all ${
+                        isActive
+                          ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[inset_0_0_15px_rgba(16,185,129,0.1)]"
+                          : "bg-black/40 border-white/10 text-white/50 hover:bg-white/5"
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? "opacity-100" : "opacity-50"}`} />
+                      <span className="text-xs font-semibold uppercase tracking-wider">{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <InputWrapper label="Full Name" icon={User}>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Jane Doe"
+                  required
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                />
+              </InputWrapper>
+
+              <AnimatePresence mode="wait">
+                {(tier === "startup" || tier === "enterprise") && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4"
+                  >
+                    <InputWrapper label="Company Name" icon={Building}>
+                      <input
+                        type="text"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Acme Corp"
+                        required
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                      />
+                    </InputWrapper>
+
+                    {tier === "startup" && (
+                      <InputWrapper label="Estimated Team Size" icon={Users}>
+                        <select
+                          value={teamSize}
+                          onChange={(e) => setTeamSize(e.target.value)}
+                          required
+                          className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner appearance-none"
+                        >
+                          <option value="" disabled className="bg-[#051A11]">Select team size...</option>
+                          <option value="1-10" className="bg-[#051A11]">1 - 10 employees</option>
+                          <option value="11-50" className="bg-[#051A11]">11 - 50 employees</option>
+                          <option value="51-200" className="bg-[#051A11]">51 - 200 employees</option>
+                        </select>
+                      </InputWrapper>
+                    )}
+
+                    {tier === "enterprise" && (
+                      <InputWrapper label="Job Title / Department" icon={Briefcase}>
+                        <input
+                          type="text"
+                          value={jobTitle}
+                          onChange={(e) => setJobTitle(e.target.value)}
+                          placeholder="e.g. Director of FP&A"
+                          required
+                          className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                        />
+                      </InputWrapper>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <InputWrapper label="Email Address" icon={Mail}>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder="name@company.com"
                   required
                   autoComplete="email"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
-              </div>
-            </div>
+              </InputWrapper>
 
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3.5 w-5 h-5 text-cyan-400/60" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
-                />
-              </div>
-              {password.length > 0 ? (
-                <div className="mt-2 space-y-1.5">
-                  <div className="flex h-1.5 gap-1">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-full flex-1 rounded-full transition-colors ${
-                          i <= strength.score ? strength.color : "bg-white/10"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-white/45">
-                    Strength: <span className="text-white/70">{strength.label}</span>
-                  </p>
+              <div className="space-y-1.5">
+                <label className="block text-[13px] font-medium text-white/70 ml-1">
+                  Vault Key (Password)
+                </label>
+                <div className="relative group">
+                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-emerald-400/50 group-focus-within:text-emerald-400 transition-colors" />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                  />
                 </div>
-              ) : (
-                <p className="text-xs text-white/40 mt-1">Minimum 8 characters</p>
-              )}
-            </div>
+                {password.length > 0 && (
+                  <div className="pt-2">
+                    <div className="flex h-1 gap-1 w-full max-w-[200px] ml-1">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-full flex-1 rounded-full transition-colors ${
+                            i <= strength.score ? strength.color : "bg-white/10"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3.5 w-5 h-5 text-cyan-400/60" />
+              <InputWrapper label="Confirm Vault Key" icon={Lock}>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -191,71 +322,46 @@ export default function SignUpPage() {
                   placeholder="••••••••"
                   required
                   autoComplete="new-password"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
-              </div>
+              </InputWrapper>
             </div>
 
-            <button
+            <NeoButton
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 group"
+              variant="primary"
+              className="w-full mt-6"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                <>
-                  Create Account
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
+              {isLoading ? <DotsLoader /> : "Initialize Account"}
+            </NeoButton>
           </form>
 
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-white/40">OR</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
-
-          <div className="space-y-3 mb-6">
-            <button
-              type="button"
-              onClick={() => handleOAuth("google")}
-              disabled={isOAuthLoading}
-              className="w-full bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg transition-all duration-300 font-medium text-sm"
-            >
-              {isOAuthLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-              ) : (
-                "Sign up with Google"
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth("github")}
-              disabled={isOAuthLoading}
-              className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 disabled:opacity-50 text-white py-3 rounded-lg transition-all duration-300 font-medium text-sm"
-            >
-              <Code2 className="h-4 w-4 opacity-80" />
-              Sign up with GitHub
-            </button>
-          </div>
-
-          <p className="text-center text-white/60 text-sm">
-            Already have an account?{" "}
+          <p className="text-center text-white/40 text-sm mt-8">
+            Already have clearance?{" "}
             <Link
               href="/login"
-              className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
+              className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
             >
-              Sign in
+              Authenticate
             </Link>
           </p>
-        </div>
+        </GlassCard>
       </motion.div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#050505] flex items-center justify-center text-emerald-500 text-sm font-semibold tracking-widest uppercase">
+          Initializing Protocol...
+        </div>
+      }
+    >
+      <SignUpContent />
+    </Suspense>
   );
 }

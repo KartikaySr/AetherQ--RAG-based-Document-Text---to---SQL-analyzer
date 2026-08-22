@@ -130,7 +130,7 @@ export function ChatSidebar() {
             href="/workspace"
             className="flex items-center gap-2 font-semibold text-white hover:opacity-80 transition"
           >
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-500" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-amber-500" />
             AetherQ
           </Link>
           <button
@@ -149,7 +149,7 @@ export function ChatSidebar() {
             bumpChatSession();
             addToast("Started a new conversation", "info");
           }}
-          className="mb-4 w-full rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-200 hover:bg-cyan-500/20 transition flex items-center justify-center gap-2 active:scale-95"
+          className="mb-4 w-full rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200 hover:bg-emerald-500/20 transition flex items-center justify-center gap-2 active:scale-95"
         >
           <Plus size={16} />
           New Chat
@@ -163,7 +163,7 @@ export function ChatSidebar() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search chats..."
-            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-cyan-400/30 focus:bg-white/10 transition"
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-emerald-400/30 focus:bg-white/10 transition"
           />
         </div>
 
@@ -180,7 +180,7 @@ export function ChatSidebar() {
                 key={chat.id}
                 className={`group relative w-full rounded-lg border transition ${
                   selectedConversationId === chat.id
-                    ? "border-cyan-400/50 bg-cyan-500/10"
+                    ? "border-emerald-400/50 bg-emerald-500/10"
                     : "border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/5"
                 }`}
               >
@@ -189,7 +189,7 @@ export function ChatSidebar() {
                   className="w-full text-left px-3 py-2.5 text-sm text-white/70 active:scale-95"
                 >
                   <div className="flex items-start gap-2">
-                    <MessageSquare size={14} className="mt-0.5 shrink-0 text-cyan-400" />
+                    <MessageSquare size={14} className="mt-0.5 shrink-0 text-emerald-400" />
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-1 font-medium text-white/90">
                         {chat.title}
@@ -224,7 +224,7 @@ export function ChatSidebar() {
             href="https://github.com/KartikaySr/AetherQ---Rag-Based-Document-Analyzer"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-2.5 text-sm text-purple-100/90 hover:bg-purple-500/[0.14] transition font-medium"
+            className="flex items-center justify-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-100/90 hover:bg-amber-500/[0.14] transition font-medium"
           >
             <ExternalLink size={16} />
             <span className="hidden sm:inline">Documentation</span>

@@ -1,0 +1,29 @@
+0000000000000000000000000000000000000000 9c8b1324f9bbfb6754bc37ec27fdf6622597d0a8 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778127305 +0530	commit (initial): Initial commit from Create Next App
+9c8b1324f9bbfb6754bc37ec27fdf6622597d0a8 76358a573491794a89d04735493d18e93e3ee512 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778439486 +0530	commit: AetherQ production deployment
+76358a573491794a89d04735493d18e93e3ee512 e8bffcfaa276692f5b30eb88e719b380b5a39bc5 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778502404 +0530	commit: Initial commit: AetherQ with real chat history, delete feature, GitHub docs link, and Vercel deployment guide
+e8bffcfaa276692f5b30eb88e719b380b5a39bc5 e8bffcfaa276692f5b30eb88e719b380b5a39bc5 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778502445 +0530	Branch: renamed refs/heads/main to refs/heads/main
+e8bffcfaa276692f5b30eb88e719b380b5a39bc5 e74a755e2291815f3ed7087f89f7cec29aa124c6 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778502497 +0530	commit: Add .gitignore
+e74a755e2291815f3ed7087f89f7cec29aa124c6 96f3cc085b27577e5c052cd6e84f9e7b3311fc4d Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778502676 +0530	reset: moving to origin/main
+96f3cc085b27577e5c052cd6e84f9e7b3311fc4d e8bffcfaa276692f5b30eb88e719b380b5a39bc5 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778503314 +0530	reset: moving to e8bffcf
+e8bffcfaa276692f5b30eb88e719b380b5a39bc5 b11df5f94964f9d8cbbee6929dcca503143198a7 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778512531 +0530	commit: Fix conversation service deployment error
+b11df5f94964f9d8cbbee6929dcca503143198a7 bd88bb5d3b0ee6f36fc5b9ccc18e626ab9e8017f Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778512969 +0530	commit (merge): Resolve merge conflicts: Keep Supabase implementation and production configurations
+bd88bb5d3b0ee6f36fc5b9ccc18e626ab9e8017f 54109af8ee6b0dd186aa23b68cf5ef1d2923d0b6 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778515269 +0530	commit: Fix Xenova runtime loading on Vercel
+54109af8ee6b0dd186aa23b68cf5ef1d2923d0b6 fca1f57125a92364b743cd6a3a2583031250b822 Kartikay Srivastava <kartikaymg57@Kartikays-MacBook-Air.local> 1778517775 +0530	commit: Fix Vercel Xenova runtime
+fca1f57125a92364b743cd6a3a2583031250b822 fca1f57125a92364b743cd6a3a2583031250b822 Kartikay Srivastava <kartikaymg57@gmail.com> 1778521310 +0530	Branch: renamed refs/heads/main to refs/heads/main
+fca1f57125a92364b743cd6a3a2583031250b822 c15c907a8f9113d6ffa5175570fb37567f2d5a50 Kartikay Srivastava <kartikaymg57@gmail.com> 1778521310 +0530	commit: Final production-ready AetherQ deployment build
+c15c907a8f9113d6ffa5175570fb37567f2d5a50 2dbee5e02008eb8c950050475035c8d32c672d44 Kartikay Srivastava <kartikaymg57@gmail.com> 1778522026 +0530	commit: Final production-ready AetherQ deployment build
+2dbee5e02008eb8c950050475035c8d32c672d44 a6ecc2b9b041b8a2ebc629a39677a3e02c92b4ff Kartikay Srivastava <kartikaymg57@gmail.com> 1778523403 +0530	commit: Fix HuggingFace embedding endpoint
+a6ecc2b9b041b8a2ebc629a39677a3e02c92b4ff 44fe3b5aa9c8b76d1090e647e1c3856543c15991 Kartikay Srivastava <kartikaymg57@gmail.com> 1778523703 +0530	commit: Fix missing toPgVector export
+44fe3b5aa9c8b76d1090e647e1c3856543c15991 ea899d607d05c7f61632ea725ac2f5d6ba843e7b Kartikay Srivastava <kartikaymg57@gmail.com> 1778733081 +0530	commit: Fix Supabase client initialization during build
+ea899d607d05c7f61632ea725ac2f5d6ba843e7b c58bd62afc8a37d5ab38603552cff87e5265aa40 Kartikay Srivastava <kartikaymg57@gmail.com> 1778733786 +0530	commit: Production update
+c58bd62afc8a37d5ab38603552cff87e5265aa40 16351cffd1e195a2fb5f185e494147c279541536 Kartikay Srivastava <kartikaymg57@gmail.com> 1778816906 +0530	commit: Fix chat persistence and SQL analytics
+16351cffd1e195a2fb5f185e494147c279541536 c91d37cad18b225e9a584560b486c2072329b800 Kartikay Srivastava <kartikaymg57@gmail.com> 1778817438 +0530	commit: Fix Groq chat API streaming
+c91d37cad18b225e9a584560b486c2072329b800 617eb027aa23506e538087b21819ac8faf556650 Kartikay Srivastava <kartikaymg57@gmail.com> 1778818730 +0530	commit: Fix conversation persistence service
+617eb027aa23506e538087b21819ac8faf556650 27b72a40edfdcf0b4129ce65d20d9410c06dc779 Kartikay Srivastava <kartikaymg57@gmail.com> 1778819047 +0530	commit: Fix conversation persistence service
+27b72a40edfdcf0b4129ce65d20d9410c06dc779 cd1fc7c90d0d1eead4c666797b1e1663d0d23cc9 Kartikay Srivastava <kartikaymg57@gmail.com> 1778825985 +0530	commit: Fix Supabase session persistence
+cd1fc7c90d0d1eead4c666797b1e1663d0d23cc9 fe84a9bb112104764311895711abd9c113b4128a Kartikay Srivastava <kartikaymg57@gmail.com> 1779109367 +0530	commit: Update AetherQ project
+fe84a9bb112104764311895711abd9c113b4128a 7413c59cd55423bc7b88c9f9c3c61a972ce02b75 Kartikay Srivastava <kartikaymg57@gmail.com> 1779110133 +0530	commit: Redeploy latest AetherQ changes
+7413c59cd55423bc7b88c9f9c3c61a972ce02b75 351ae2e3ae62306cd09e8898e4a2682b4dff589e Kartikay Srivastava <kartikaymg57@gmail.com> 1779165728 +0530	commit: Updated AetherQ PPT architecture and system improvements
+351ae2e3ae62306cd09e8898e4a2682b4dff589e cefdcd67eeb244226ba2574cd0138d54a3a333bf Kartikay Srivastava <YOUR_GITHUB_NOREPLY_EMAIL> 1782892800 +0530	commit: chore: update document processing and auth flow
+cefdcd67eeb244226ba2574cd0138d54a3a333bf df1cfe508a75f050d90ff6145f1283f953b973dc Kartikay Srivastava <kartikaymg57@gmail.com> 1787206829 +0530	commit: feat: complete wave 6 AEGIS modules
+df1cfe508a75f050d90ff6145f1283f953b973dc 90ceaa69374627b5de142fc1ecec9b65fc102c93 Kartikay Srivastava <kartikaymg57@gmail.com> 1787386474 +0530	commit: feat: implement guest login, add toast provider, and apply project cleanup

@@ -26,13 +26,25 @@ export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
 };
 
+import { Inter, Playfair_Display } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+});
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" data-scroll-behavior="smooth">
+    <html lang="en" className={`dark ${inter.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
       <body className="min-h-[100dvh] bg-[#050505] pb-[env(safe-area-inset-bottom)] text-white antialiased">
         <AuthProvider>
           <ToastProvider>

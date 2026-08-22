@@ -11,12 +11,15 @@ import {
   Shield,
   Sparkles,
   MessageSquare,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import {
   conversationService,
   type ConversationSummary,
 } from "@/services/conversationService";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { NeoButton } from "@/components/ui/NeoButton";
 
 function greetingForHour(h: number): string {
   if (h < 12) return "Good morning";
@@ -72,28 +75,61 @@ export default function WorkspacePage() {
       icon: BrainCircuit,
       title: "AI Workspace",
       description:
-        "Groq-powered chat with routing for documents, SQL analytics, and general reasoning.",
+        "Conversational intelligence with autonomous routing.",
       href: "/workspace/chat",
-      color: "from-cyan-500 to-blue-500",
-      border: "border-cyan-500/20",
+      bg: "from-emerald-500/20",
+      iconColor: "text-emerald-400",
+      shadow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
     },
     {
       icon: Database,
-      title: "Enterprise Analytics",
+      title: "Data Analytics",
       description:
-        "Natural language to validated SQL on curated warehouse tables with audit logging.",
+        "Natural language to validated SQL warehouse insights.",
       href: "/workspace/analytics",
-      color: "from-purple-500 to-pink-500",
-      border: "border-purple-500/20",
+      bg: "from-amber-500/20",
+      iconColor: "text-amber-400",
+      shadow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
     },
     {
       icon: FileText,
-      title: "Document Intelligence",
+      title: "Document Vault",
       description:
-        "Private vault per account: upload, embed, and query your files with citations.",
+        "Upload and query your files with RAG vector search.",
       href: "/workspace/documents",
-      color: "from-pink-500 to-orange-500",
-      border: "border-pink-500/20",
+      bg: "from-pink-500/20",
+      iconColor: "text-pink-400",
+      shadow: "shadow-[0_0_20px_rgba(236,72,153,0.3)]",
+    },
+    {
+      icon: Shield,
+      title: "Continuous Assurance",
+      description:
+        "Real-time audit intelligence with Red/Blue team ERP sync.",
+      href: "/workspace/assurance",
+      bg: "from-emerald-500/20",
+      iconColor: "text-emerald-400",
+      shadow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
+    },
+    {
+      icon: Sparkles,
+      title: "M&A Risk Prediction",
+      description:
+        "Predict synergy, integration timelines, and cultural friction.",
+      href: "/workspace/mna",
+      bg: "from-amber-500/20",
+      iconColor: "text-amber-400",
+      shadow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
+    },
+    {
+      icon: Database,
+      title: "Dynamic Tax Routing",
+      description:
+        "Visualize supply chain cash flows and Pillar Two exposure.",
+      href: "/workspace/tax",
+      bg: "from-pink-500/20",
+      iconColor: "text-pink-400",
+      shadow: "shadow-[0_0_20px_rgba(236,72,153,0.3)]",
     },
   ];
 
@@ -102,183 +138,157 @@ export default function WorkspacePage() {
     (user?.email?.split("@")[0]?.slice(-1)?.toUpperCase() ?? "");
 
   return (
-    <div className="min-h-screen bg-[#050505] overflow-hidden relative">
-      <div className="absolute inset-0">
+    <div className="min-h-screen relative selection:bg-emerald-500/30 selection:text-emerald-100 overflow-hidden">
+      
+      {/* Background Lights */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{ x: [0, 80, -40, 0], y: [0, -30, 40, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] left-[-10%] w-[380px] md:w-[520px] h-[380px] md:h-[520px] bg-cyan-500/10 rounded-full blur-[90px]"
+          animate={{ x: [0, 100, -50, 0], y: [0, -50, 80, 0] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen"
         />
         <motion.div
-          animate={{ x: [0, -60, 50, 0], y: [0, 40, -20, 0] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] right-[-10%] w-[380px] md:w-[520px] h-[380px] md:h-[520px] bg-purple-500/10 rounded-full blur-[90px]"
+          animate={{ x: [0, -80, 60, 0], y: [0, 60, -40, 0] }}
+          transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[120px] mix-blend-screen"
         />
-        <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-20">
+        
+        {/* Header Section */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="mb-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          className="mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10"
         >
           <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-200/90">
-              <Sparkles className="w-3.5 h-3.5" />
-              Enterprise Intelligence Mesh
+            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-300 text-xs font-semibold uppercase tracking-[0.2em] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              Intelligence Mesh Active
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-3">
-              {greeting},{" "}
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-4">
+              {greeting},<br />
+              <span className="bg-gradient-to-r from-emerald-400 via-emerald-600 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(16,185,129,0.3)]">
                 {displayName}
               </span>
             </h1>
-            <p className="text-lg text-white/55 leading-relaxed">
-              Your workspace is isolated by account: documents, embeddings, and
-              chat history stay private. Use the modules below to analyze data,
-              query files, or collaborate with the AI assistant.
+            <p className="text-xl text-white/50 leading-relaxed font-light">
+              Your workspace is cryptographically isolated. Deploy modules below to analyze data, query files, or collaborate with AetherQ.
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-6 py-5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-500 text-lg font-bold text-white shadow-lg shadow-cyan-500/20">
-              {initial.slice(0, 2)}
+          <GlassCard className="p-6 shrink-0 md:w-80" interactive={false}>
+            <div className="flex items-center gap-5">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-amber-500 text-xl font-bold text-white shadow-lg shadow-emerald-500/30">
+                {initial.slice(0, 2)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80 mb-1">
+                  Verified Identity
+                </p>
+                <p className="truncate text-base font-semibold text-white">
+                  {user?.email ?? "—"}
+                </p>
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-amber-300/80">
+                  <Shield className="h-4 w-4 shrink-0" />
+                  RLS Vault Secured
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wider text-white/40">
-                Signed in
-              </p>
-              <p className="truncate text-sm font-medium text-white">
-                {user?.email ?? "—"}
-              </p>
-              <p className="mt-1 flex items-center gap-1.5 text-xs text-emerald-400/90">
-                <Shield className="h-3.5 w-3.5 shrink-0" />
-                Row-level security on your data plane
-              </p>
-            </div>
-          </div>
+          </GlassCard>
         </motion.div>
 
-        <div className="mb-12 grid gap-4 sm:grid-cols-3">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl"
-          >
-            <p className="text-xs font-medium uppercase tracking-wider text-white/45">
-              Vault documents
+        {/* Stats Grid */}
+        <div className="mb-16 grid gap-6 md:grid-cols-3">
+          <GlassCard className="p-8" interactive={false}>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">
+              Vault Documents
             </p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+            <p className="text-5xl font-bold text-white tracking-tight">
               {stats.documentCount}
             </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl"
-          >
-            <p className="text-xs font-medium uppercase tracking-wider text-white/45">
-              Saved conversations
+          </GlassCard>
+          <GlassCard className="p-8" interactive={false}>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">
+              Saved Conversations
             </p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+            <p className="text-5xl font-bold text-white tracking-tight">
               {stats.conversationCount}
             </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl"
-          >
-            <p className="text-xs font-medium uppercase tracking-wider text-white/45">
-              Isolation
+          </GlassCard>
+          <GlassCard className="p-8 bg-gradient-to-br from-emerald-500/5 to-amber-500/5" interactive={false}>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400/80 mb-3">
+              Isolation Level
             </p>
-            <p className="mt-2 text-2xl font-semibold text-white">Per user</p>
-            <p className="mt-1 text-xs text-white/45">RLS + scoped APIs</p>
-          </motion.div>
+            <p className="text-3xl font-bold text-white tracking-tight mb-2">Absolute</p>
+            <p className="text-xs text-white/40 font-medium">Row Level Security Active</p>
+          </GlassCard>
         </div>
 
-        {recent.length > 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12 rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl"
-          >
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50">
-                Recent conversations
-              </h2>
-              <Link
-                href="/workspace/chat"
-                className="text-xs font-medium text-cyan-400 hover:text-cyan-300"
-              >
-                Open chat →
-              </Link>
-            </div>
-            <ul className="divide-y divide-white/10">
-              {recent.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href="/workspace/chat"
-                    className="flex items-center gap-3 py-3 text-sm text-white/75 transition hover:text-white"
-                  >
-                    <MessageSquare className="h-4 w-4 shrink-0 text-cyan-400/80" />
-                    <span className="min-w-0 flex-1 truncate font-medium">
-                      {c.title}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        ) : null}
-
-        <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-white/45">
-          Choose a workspace
+        {/* Modules Grid */}
+        <h2 className="mb-8 text-sm font-bold uppercase tracking-[0.2em] text-white/50 pl-2 border-l-2 border-emerald-500/50">
+          Deploy Modules
         </h2>
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {features.map((feature, index) => {
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <motion.div
-                key={feature.href}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.08 }}
-              >
-                <Link href={feature.href} className="group block h-full">
-                  <div className="relative h-full">
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-[0.12] rounded-3xl blur-xl transition-opacity duration-500`}
-                    />
-                    <div
-                      className={`relative flex h-full flex-col rounded-3xl border ${feature.border} bg-[#0a0a0a]/80 p-8 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-white/20`}
-                    >
-                      <div
-                        className={`mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${feature.color} shadow-lg`}
-                      >
-                        <Icon className="h-7 w-7 text-white" />
-                      </div>
-                      <h3 className="mb-3 text-xl font-bold text-white md:text-2xl">
-                        {feature.title}
-                      </h3>
-                      <p className="mb-6 flex-1 text-sm leading-relaxed text-white/60 md:text-base">
-                        {feature.description}
-                      </p>
-                      <div className="flex items-center text-sm font-medium text-cyan-400 group-hover:translate-x-1 transition-transform">
-                        Open
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                      </div>
-                    </div>
+              <GlassCard key={feature.href} href={feature.href} className="p-10 flex flex-col justify-between group h-[340px]">
+                <div>
+                  <div className={`w-16 h-16 rounded-[20px] bg-gradient-to-br ${feature.bg} to-transparent border border-white/10 flex items-center justify-center mb-8 shadow-lg ${feature.shadow} group-hover:scale-110 transition-transform duration-500`}>
+                    <Icon className={`w-8 h-8 ${feature.iconColor} drop-shadow-md`} />
                   </div>
-                </Link>
-              </motion.div>
+                  <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">{feature.title}</h3>
+                  <p className="text-white/50 text-base leading-relaxed font-light">
+                    {feature.description}
+                  </p>
+                </div>
+                <div className={`mt-8 flex items-center gap-2 font-semibold ${feature.iconColor} group-hover:translate-x-2 transition-transform duration-300`}>
+                  Initialize <ChevronRight size={18} />
+                </div>
+              </GlassCard>
             );
           })}
         </div>
+
+        {/* Recent Conversations */}
+        {recent.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <GlassCard className="p-8" interactive={false}>
+              <div className="mb-6 flex items-center justify-between gap-4 border-b border-white/5 pb-4">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/50">
+                  Recent Transcripts
+                </h2>
+                <NeoButton href="/workspace/chat" variant="ghost" className="text-xs py-1.5 px-3 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400">
+                  View All <ArrowRight size={14} className="ml-1" />
+                </NeoButton>
+              </div>
+              <ul className="divide-y divide-white/5">
+                {recent.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      href="/workspace/chat"
+                      className="group flex items-center gap-4 py-4 text-sm text-white/70 transition-colors hover:text-white"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition-colors border border-white/5">
+                        <MessageSquare className="h-4 w-4 shrink-0" />
+                      </div>
+                      <span className="min-w-0 flex-1 truncate font-medium text-base">
+                        {c.title}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </GlassCard>
+          </motion.div>
+        )}
       </div>
     </div>
   );

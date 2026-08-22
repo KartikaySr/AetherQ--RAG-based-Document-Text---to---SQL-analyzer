@@ -199,17 +199,17 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl md:p-6"
+      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl shadow-emerald-500/10 backdrop-blur-xl md:p-6"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.14),transparent_36%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.14),transparent_36%)]" />
 
       <div className="relative">
         <div
           {...getRootProps()}
           className={`group flex min-h-[300px] cursor-default flex-col items-center justify-center rounded-3xl border border-dashed p-6 text-center transition-all duration-300 md:min-h-[360px] md:p-10 ${
             isDragActive
-              ? "border-cyan-300/70 bg-cyan-500/10 shadow-2xl shadow-cyan-500/20"
-              : "border-white/15 bg-black/30 hover:border-cyan-400/40 hover:bg-white/[0.045]"
+              ? "border-emerald-300/70 bg-emerald-500/10 shadow-2xl shadow-emerald-500/20"
+              : "border-white/15 bg-black/30 hover:border-emerald-400/40 hover:bg-white/[0.045]"
           }`}
         >
           <input {...getInputProps()} />
@@ -219,12 +219,12 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
               scale: isDragActive ? 1.06 : 1,
               y: isDragActive ? -4 : 0,
             }}
-            className="mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-400/20 bg-cyan-400/10 shadow-lg shadow-cyan-500/10"
+            className="mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-emerald-400/20 bg-emerald-400/10 shadow-lg shadow-emerald-500/10"
           >
-            <UploadCloud className="text-cyan-300" size={36} />
+            <UploadCloud className="text-emerald-300" size={36} />
           </motion.div>
 
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-purple-400/20 bg-purple-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-purple-200">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-amber-200">
             <Sparkles size={14} />
             Document Intelligence
           </div>
@@ -243,7 +243,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
             <button
               type="button"
               onClick={open}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500 px-7 py-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:scale-[1.02] sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-7 py-4 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:scale-[1.02] sm:w-auto"
             >
               <FileText size={18} />
               Select Files
@@ -258,7 +258,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
         {(notice || items.length > 0) && (
           <div className="mt-5 space-y-3">
             {notice && (
-              <div className="flex items-center gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+              <div className="flex items-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
                 <CheckCircle2 size={18} />
                 {notice}
               </div>
@@ -285,7 +285,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
                   </div>
 
                   {item.status === "uploading" && (
-                    <Loader2 className="shrink-0 animate-spin text-cyan-300" />
+                    <Loader2 className="shrink-0 animate-spin text-emerald-300" />
                   )}
 
                   {item.status === "success" && (
@@ -302,7 +302,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
                     className={`h-full rounded-full transition-all duration-500 ${
                       item.status === "error"
                         ? "bg-red-400"
-                        : "bg-gradient-to-r from-cyan-400 to-purple-400"
+                        : "bg-gradient-to-r from-emerald-400 to-amber-400"
                     }`}
                     style={{ width: `${item.progress}%` }}
                   />

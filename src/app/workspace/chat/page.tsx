@@ -84,6 +84,8 @@ function ChatWorkspace() {
     setSelectedDocumentId,
     selectedConversationId,
     setSelectedConversation,
+    pendingGlobalPrompt,
+    setPendingGlobalPrompt,
   } = useWorkspaceStore();
   const { stream } = useStreamMessage();
   const { addToast } = useToast();
@@ -553,12 +555,19 @@ function ChatWorkspace() {
           trimmed.length > 56 ? `${trimmed.slice(0, 56)}…` : trimmed || "New chat";
         const created = await conversationService.createConversation(title, mode);
         if (!created) {
-          addToast("Could not start a saved conversation.", "error");
-          return;
+          const fallbackId = `local-${Date.now()}-${crypto.randomUUID()}`;
+          convId = fallbackId;
+          activeConvRef.current = convId;
+          setSelectedConversation(convId);
+          addToast(
+            "Saved conversations are unavailable right now, so this chat is continuing temporarily.",
+            "info"
+          );
+        } else {
+          convId = created.id;
+          activeConvRef.current = convId;
+          setSelectedConversation(convId);
         }
-        convId = created.id;
-        activeConvRef.current = convId;
-        setSelectedConversation(convId);
       } else {
         activeConvRef.current = convId;
       }
@@ -657,6 +666,19 @@ function ChatWorkspace() {
     [dispatchUserTurn]
   );
 
+  // Handle incoming global Copilot commands
+  useEffect(() => {
+    if (pendingGlobalPrompt && !isLoading) {
+      const promptToRun = pendingGlobalPrompt;
+      setPendingGlobalPrompt(null);
+      
+      // Delay slightly to ensure UI is ready
+      setTimeout(() => {
+        void dispatchUserTurn(promptToRun, false);
+      }, 100);
+    }
+  }, [pendingGlobalPrompt, isLoading, dispatchUserTurn, setPendingGlobalPrompt]);
+
   const handleRegenerateAt = useCallback(
     async (assistantIndex: number) => {
       const list = messagesRef.current;
@@ -707,27 +729,37 @@ function ChatWorkspace() {
 
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:pb-0">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,255,255,0.08),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.08),transparent_40%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.08),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.08),transparent_40%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#222_1px,transparent_1px),linear-gradient(to_bottom,#222_1px,transparent_1px)] bg-[size:60px_60px] opacity-5" />
         </div>
 
-        <header className="relative z-10 flex items-center justify-between border-b border-white/10 bg-black/50 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur md:px-6 md:py-4">
+        <header className="relative z-10 flex items-center justify-between border-b border-[#D4AF37]/10 bg-black/60 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl md:px-6 md:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <h1 className="truncate text-xl font-bold md:text-2xl">AetherQ</h1>
-            <span className="inline-block max-w-[260px] shrink-0 truncate rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300 sm:max-w-none">
+            <h1 className="truncate text-xl font-serif font-bold md:text-2xl luxury-text-gradient">AetherQ</h1>
+            <span className="inline-block max-w-[260px] shrink-0 truncate rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#D4AF37] sm:max-w-none">
               {badgeLabel}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={handleClearChat}
-            disabled={messages.length <= 1 || isLoading}
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/60 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-            title="Clear current chat"
-          >
-            <Trash2 size={16} />
-            <span className="hidden sm:inline">Clear</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/[0.02]">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6C875] animate-pulse shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]/80">Core Online</span>
+              </div>
+              <div className="w-[1px] h-3 bg-[#D4AF37]/20" />
+              <span className="text-[10px] font-mono text-[#D4AF37]/50">12ms</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearChat}
+              disabled={messages.length <= 1 || isLoading}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#D4AF37]/10 bg-white/5 px-2.5 py-1.5 text-[11px] text-white/60 transition hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/30 hover:text-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+              title="Clear current chat"
+            >
+              <Trash2 size={14} />
+              <span className="hidden sm:inline">Clear</span>
+            </button>
+          </div>
         </header>
 
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto">
@@ -767,13 +799,13 @@ function ChatWorkspace() {
                   ].map((feature) => (
                     <div
                       key={feature.title}
-                      className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition hover:border-cyan-400/30"
+                      className="rounded-2xl border border-[#D4AF37]/10 bg-black/40 p-6 transition hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] backdrop-blur-sm"
                     >
-                      <div className="mb-3 text-3xl">{feature.icon}</div>
-                      <h3 className="mb-2 text-base font-semibold">
+                      <div className="mb-3 text-3xl opacity-80 grayscale">{feature.icon}</div>
+                      <h3 className="mb-2 text-base font-serif font-bold text-[#E6C875]">
                         {feature.title}
                       </h3>
-                      <p className="text-sm leading-relaxed text-white/60">
+                      <p className="text-[13px] leading-relaxed text-white/50">
                         {feature.description}
                       </p>
                     </div>
@@ -790,7 +822,7 @@ function ChatWorkspace() {
                         key={prompt}
                         type="button"
                         onClick={() => handleSendMessage(prompt)}
-                        className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/70 transition hover:border-cyan-400/30 hover:bg-white/10 hover:text-white active:scale-[0.98]"
+                        className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/70 transition hover:border-emerald-400/30 hover:bg-white/10 hover:text-white active:scale-[0.98]"
                       >
                         {prompt}
                       </button>
@@ -830,11 +862,11 @@ function ChatWorkspace() {
                 {isLoading && !streamingContent && (
                   <div className="mb-8">
                     <div className="flex gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-xs font-bold text-white">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 text-xs font-bold text-white">
                         A
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-3">
-                        <p className="animate-pulse text-sm text-cyan-200/70">
+                        <p className="animate-pulse text-sm text-emerald-200/70">
                           {loaderCaption}
                         </p>
                         <TypingIndicator />

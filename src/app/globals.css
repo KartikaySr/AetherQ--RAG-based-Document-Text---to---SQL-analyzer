@@ -1,4 +1,59 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+@source "../../src";
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+  --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+  
+  /* Premium Dark Green Background (CRED-like) */
+  --color-obsidian: #051A11; 
+  --color-gold-400: #E6C875;
+  --color-gold-500: #D4AF37;
+  --color-gold-600: #AA8C2C;
+  --color-rolex-green: #004D2E; /* Deeper Rolex Green */
+  --color-platinum: #E5E4E2;
+  
+  --color-glass-dark: rgba(5, 26, 17, 0.7);
+  --color-glass-light: rgba(212, 175, 55, 0.05);
+  --color-glass-border: rgba(212, 175, 55, 0.2);
+  
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  --shadow-neon: 0 0 20px rgba(212, 175, 55, 0.3);
+  --shadow-inner-glow: inset 0 1px 1px 0 rgba(212, 175, 55, 0.25);
+  --shadow-emerald-facet: inset 0 2px 4px 0 rgba(212, 175, 55, 0.5), inset 0 -2px 4px 0 rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 77, 46, 0.4);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes border-glow {
+  0% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.2), inset 0 0 5px rgba(212, 175, 55, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 10px rgba(212, 175, 55, 0.3); }
+  100% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.2), inset 0 0 5px rgba(212, 175, 55, 0.1); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-shimmer {
+  animation: shimmer 8s linear infinite;
+}
+
+.animate-border-glow {
+  animation: border-glow 3s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 15s ease infinite;
+  background-size: 200% 200%;
+}
 
 :root {
   color-scheme: dark;
@@ -9,16 +64,58 @@ html {
 }
 
 body {
-  background: black;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-obsidian);
+  color: #E5E4E2; /* Platinum */
+  font-family: var(--font-sans);
+  font-size: 14px; /* Pro/Premium compact base size */
+  line-height: 1.5;
+  overflow-x: hidden;
+  /* Ultra premium noise texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  background-attachment: fixed;
 }
 
-html,
-body {
-  overflow-x: hidden;
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+}
+
+.luxury-text-gradient {
+  background: linear-gradient(to right, #D4AF37, #E6C875, #D4AF37);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 * {
   box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em; /* Playfair looks better with slight positive or zero tracking */
+}
+
+/* Custom Scrollbar for Luxury Vibe */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.4);
+}
+
+/* Base Glassmorphism utility classes if needed */
+.glass-panel {
+  background: var(--color-glass-dark);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: var(--shadow-glass), var(--shadow-inner-glow);
 }

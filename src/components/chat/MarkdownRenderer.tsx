@@ -18,6 +18,9 @@ type MarkdownRendererProps = {
 };
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  // Pre-process <redacted> tags into markdown strikethrough so we can style them
+  const processedContent = content.replace(/<redacted>([\s\S]*?)<\/redacted>/g, '~~$1~~');
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
@@ -84,7 +87,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
           if (inline) {
             return (
-              <code className="rounded bg-white/10 px-2 py-1 font-mono text-sm text-cyan-300">
+              <code className="rounded bg-white/10 px-2 py-1 font-mono text-sm text-emerald-300">
                 {children}
               </code>
             );
@@ -110,7 +113,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
         // Blockquotes
         blockquote: ({ children }) => (
-          <blockquote className="mb-4 border-l-4 border-cyan-500 bg-white/5 py-3 pl-4 text-white/70 italic">
+          <blockquote className="mb-4 border-l-4 border-emerald-500 bg-white/5 py-3 pl-4 text-white/70 italic">
             {children}
           </blockquote>
         ),
@@ -121,7 +124,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-cyan-400 underline hover:text-cyan-300 transition"
+            className="text-emerald-400 underline hover:text-emerald-300 transition"
           >
             {children}
           </a>
@@ -177,9 +180,21 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             {children}
           </em>
         ),
+
+        // Redacted content (mapped from ~~)
+        del: ({ children }) => (
+          <span className="relative group cursor-pointer inline-flex mx-1" title="Click or hover to reveal classified data">
+            <span className="bg-white/10 text-transparent blur-[4px] group-hover:blur-none group-hover:text-red-400 group-active:blur-none group-active:text-red-400 transition-all duration-300 select-none group-hover:select-auto px-1.5 rounded font-mono text-sm border border-white/5">
+              {children}
+            </span>
+            <span className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 group-active:opacity-0 transition-opacity pointer-events-none">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-red-500/80">Redacted</span>
+            </span>
+          </span>
+        ),
       }}
     >
-      {content}
+      {processedContent}
     </ReactMarkdown>
   );
 }

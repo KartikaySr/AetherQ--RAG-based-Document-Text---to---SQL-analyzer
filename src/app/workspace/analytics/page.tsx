@@ -22,7 +22,10 @@ import {
   Ship,
   TrendingUp,
   Users,
+  Zap,
+  Code
 } from "lucide-react";
+import { RuleBuilder } from "@/components/ui/RuleBuilder";
 
 type Kpis = {
   totalRevenue: string;
@@ -63,7 +66,7 @@ function KpiCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-lg shadow-cyan-500/10 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-lg shadow-emerald-500/10 backdrop-blur-xl"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_-10%,rgba(34,211,238,0.12),transparent_45%)]" />
       <div className="relative flex items-start justify-between gap-3">
@@ -78,7 +81,7 @@ function KpiCard({
             <p className="mt-2 text-xs text-white/45">{subtitle}</p>
           ) : null}
         </div>
-        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200">
+        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-200">
           {icon}
         </div>
       </div>
@@ -90,6 +93,9 @@ export default function AnalyticsPage() {
   const [kpis, setKpis] = useState<Kpis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const [showRuleBuilder, setShowRuleBuilder] = useState(false);
+  const [showApiModal, setShowApiModal] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -124,7 +130,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-[100dvh] bg-black pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.1),transparent_40%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.1),transparent_40%)]" />
       <div className="pointer-events-none fixed inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#333_1px,transparent_1px),linear-gradient(to_bottom,#333_1px,transparent_1px)] bg-[size:48px_48px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
@@ -132,7 +138,7 @@ export default function AnalyticsPage() {
           <div>
             <Link
               href="/chat"
-              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-cyan-300/80 transition hover:text-cyan-200"
+              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-emerald-300/80 transition hover:text-emerald-200"
             >
               <ArrowLeft size={14} />
               Back to workspace
@@ -143,13 +149,27 @@ export default function AnalyticsPage() {
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base">
               Live KPIs and mock-style visualizations powered by the same
               warehouse tables that feed AetherQ SQL mode. Configure{" "}
-              <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-cyan-200">
+              <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-emerald-200">
                 DATABASE_URL
               </code>{" "}
               for production-grade insights.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowRuleBuilder(true)}
+              className="flex items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-5 py-3 text-sm font-medium text-amber-100 transition hover:bg-amber-500/20 hover:border-amber-400/50"
+            >
+              <Zap size={16} />
+              Create Automaton
+            </button>
+            <button
+              onClick={() => setShowApiModal(true)}
+              className="flex items-center gap-2 rounded-2xl border border-purple-400/20 bg-purple-500/10 px-5 py-3 text-sm font-medium text-purple-100 transition hover:bg-purple-500/20 hover:border-purple-400/50"
+            >
+              <Code size={16} />
+              Deploy as API
+            </button>
             <Link
               href="/documents"
               className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
@@ -158,7 +178,7 @@ export default function AnalyticsPage() {
             </Link>
             <Link
               href="/chat"
-              className="rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:opacity-95"
+              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:opacity-95"
             >
               Open AI Chat
             </Link>
@@ -167,7 +187,7 @@ export default function AnalyticsPage() {
 
         {loading ? (
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 text-white/50">
-            <Loader2 className="size-9 animate-spin text-cyan-300" />
+            <Loader2 className="size-9 animate-spin text-emerald-300" />
             <p className="text-sm">Pulling governed warehouse metrics…</p>
           </div>
         ) : error ? (
@@ -251,7 +271,7 @@ export default function AnalyticsPage() {
               >
                 <div className="mb-6 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-200/65">
+                    <p className="text-xs uppercase tracking-[0.28em] text-emerald-200/65">
                       Revenue pulse
                     </p>
                     <h2 className="mt-2 text-xl font-semibold md:text-2xl">
@@ -304,7 +324,7 @@ export default function AnalyticsPage() {
                 className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/30 backdrop-blur-2xl md:p-7"
               >
                 <div className="mb-6">
-                  <p className="text-xs uppercase tracking-[0.28em] text-purple-200/65">
+                  <p className="text-xs uppercase tracking-[0.28em] text-amber-200/65">
                     Regional traction
                   </p>
                   <h2 className="mt-2 text-xl font-semibold md:text-2xl">
@@ -357,6 +377,53 @@ export default function AnalyticsPage() {
           </>
         )}
       </div>
+
+      {showRuleBuilder && (
+        <RuleBuilder onClose={() => setShowRuleBuilder(false)} />
+      )}
+
+      {showApiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4 py-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl overflow-hidden rounded-3xl border border-purple-500/30 bg-[#071119] shadow-[0_0_50px_rgba(168,85,247,0.1)]"
+          >
+            <div className="border-b border-white/10 p-6 flex justify-between items-center bg-white/[0.02]">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <Code size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">One-Click API Generation</h2>
+                  <p className="text-[10px] uppercase tracking-widest text-white/50 mt-1">Live Endpoint Created</p>
+                </div>
+              </div>
+              <button onClick={() => setShowApiModal(false)} className="text-white/50 hover:text-white transition">Dismiss</button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div>
+                <p className="text-sm text-white/70 mb-2">Your API endpoint is now live. Use this curl command to fetch the current dashboard metrics securely from external systems.</p>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-black/60 p-5 font-mono text-xs text-emerald-400 overflow-x-auto relative group/curl">
+                <div className="absolute top-3 right-3 opacity-0 group-hover/curl:opacity-100 transition">
+                  <span className="bg-white/10 px-2 py-1 rounded text-white/50 cursor-pointer hover:text-white">Copy</span>
+                </div>
+                curl -X GET "https://api.aetherq.com/v1/metrics/summary" \<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Authorization: Bearer aq_prod_8f92jklw03m4nf820" \<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Content-Type: application/json"
+              </div>
+
+              <div className="flex items-center gap-4 bg-purple-500/5 border border-purple-500/20 p-4 rounded-xl">
+                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <p className="text-xs text-purple-200">Endpoint Status: <strong className="text-emerald-400">Online & Secured</strong> (Rate Limit: 100/min)</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

@@ -63,7 +63,7 @@ function KpiCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-lg shadow-cyan-500/10 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-lg shadow-emerald-500/10 backdrop-blur-xl"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_-10%,rgba(34,211,238,0.12),transparent_45%)]" />
       <div className="relative flex items-start justify-between gap-3">
@@ -78,7 +78,7 @@ function KpiCard({
             <p className="mt-2 text-xs text-white/45">{subtitle}</p>
           ) : null}
         </div>
-        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200">
+        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-200">
           {icon}
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-[100dvh] bg-black pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.1),transparent_40%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.1),transparent_40%)]" />
       <div className="pointer-events-none fixed inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#333_1px,transparent_1px),linear-gradient(to_bottom,#333_1px,transparent_1px)] bg-[size:48px_48px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
@@ -132,7 +132,7 @@ export default function AnalyticsPage() {
           <div>
             <Link
               href="/chat"
-              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-cyan-300/80 transition hover:text-cyan-200"
+              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-emerald-300/80 transition hover:text-emerald-200"
             >
               <ArrowLeft size={14} />
               Back to workspace
@@ -143,7 +143,7 @@ export default function AnalyticsPage() {
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base">
               Live KPIs and mock-style visualizations powered by the same
               warehouse tables that feed AetherQ SQL mode. Configure{" "}
-              <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-cyan-200">
+              <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-emerald-200">
                 DATABASE_URL
               </code>{" "}
               for production-grade insights.
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
             </Link>
             <Link
               href="/chat"
-              className="rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:opacity-95"
+              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:opacity-95"
             >
               Open AI Chat
             </Link>
@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
 
         {loading ? (
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 text-white/50">
-            <Loader2 className="size-9 animate-spin text-cyan-300" />
+            <Loader2 className="size-9 animate-spin text-emerald-300" />
             <p className="text-sm">Pulling governed warehouse metrics…</p>
           </div>
         ) : error ? (
@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
               >
                 <div className="mb-6 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-200/65">
+                    <p className="text-xs uppercase tracking-[0.28em] text-emerald-200/65">
                       Revenue pulse
                     </p>
                     <h2 className="mt-2 text-xl font-semibold md:text-2xl">
@@ -304,7 +304,7 @@ export default function AnalyticsPage() {
                 className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/30 backdrop-blur-2xl md:p-7"
               >
                 <div className="mb-6">
-                  <p className="text-xs uppercase tracking-[0.28em] text-purple-200/65">
+                  <p className="text-xs uppercase tracking-[0.28em] text-amber-200/65">
                     Regional traction
                   </p>
                   <h2 className="mt-2 text-xl font-semibold md:text-2xl">

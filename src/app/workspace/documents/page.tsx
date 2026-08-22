@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Database, FileSearch, ShieldCheck, Sparkles } from "lucide-react";
+import { Database, FileSearch, ShieldCheck, Sparkles, Users as UsersIcon, MousePointer2 } from "lucide-react";
 
 import DocumentCard from "@/components/DocumentCard";
 import DocumentUploader from "@/components/DocumentUploader";
-import { Sidebar } from "@/components/Sidebar";
 import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
 import { useStreamMessage } from "@/hooks/useStreamMessage";
 import { useToast } from "@/providers/ToastProvider";
@@ -43,8 +42,12 @@ export default function DocumentsPage() {
   const [analysisQuery, setAnalysisQuery] = useState("");
   const [analysisAnswer, setAnalysisAnswer] = useState<string | null>(null);
   const [analysisChunks, setAnalysisChunks] = useState<RetrievedChunk[]>([]);
-  const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+
+  const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
+  const [showSynthesis, setShowSynthesis] = useState(false);
+  const [multiplayerMode, setMultiplayerMode] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -213,6 +216,15 @@ export default function DocumentsPage() {
     setAnalysisError(null);
   }, []);
 
+  const toggleSelectDoc = useCallback((id: string) => {
+    setSelectedDocs(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     if (!analysisDocument) return;
 
@@ -329,11 +341,10 @@ export default function DocumentsPage() {
   }, [addToast, documents]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white lg:flex-row">
-      <Sidebar />
+    <div className="flex min-h-screen flex-col bg-transparent text-white lg:flex-row">
 
       <main className="relative min-h-[100dvh] min-w-0 flex-1 overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.12),transparent_38%)]" />
         <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#222_1px,transparent_1px),linear-gradient(to_bottom,#222_1px,transparent_1px)] bg-[size:60px_60px]" />
 
         <nav
@@ -348,7 +359,7 @@ export default function DocumentsPage() {
           </Link>
           <Link
             href="/chat"
-            className="whitespace-nowrap rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-2 text-[10px] text-cyan-200 transition hover:bg-cyan-500/15"
+            className="whitespace-nowrap rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-200 transition hover:bg-emerald-500/15"
           >
             Workspace
           </Link>
@@ -358,7 +369,7 @@ export default function DocumentsPage() {
           >
             Analytics
           </Link>
-          <span className="shrink whitespace-nowrap rounded-full border border-purple-400/35 bg-purple-500/15 px-3 py-2 text-[10px] text-purple-100">
+          <span className="shrink whitespace-nowrap rounded-full border border-amber-400/35 bg-amber-500/15 px-3 py-2 text-[10px] text-amber-100">
             Documents
           </span>
         </nav>
@@ -366,7 +377,7 @@ export default function DocumentsPage() {
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 pt-6 md:px-8 md:py-10">
           <header className="flex flex-col gap-6 border-b border-white/10 pb-8 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-200">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-emerald-200">
                 <FileSearch size={14} />
                 Knowledge Layer
               </div>
@@ -382,21 +393,33 @@ export default function DocumentsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-[520px]">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
-                <ShieldCheck className="mb-3 text-cyan-300" size={22} />
-                <p className="text-sm text-white/45">Private bucket</p>
-                <p className="mt-1 font-semibold">Supabase Storage</p>
+            <div className="flex flex-col gap-4 xl:items-end">
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setMultiplayerMode(prev => !prev)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition ${multiplayerMode ? "bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]" : "bg-white/10 text-white/50 hover:bg-white/20 hover:text-white"}`}
+                >
+                  <UsersIcon size={14} />
+                  Multiplayer {multiplayerMode ? "On" : "Off"}
+                </button>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
-                <Database className="mb-3 text-purple-300" size={22} />
-                <p className="text-sm text-white/45">Metadata index</p>
-                <p className="mt-1 font-semibold">{documents.length} files</p>
-              </div>
-              <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
-                <Sparkles className="mb-3 text-pink-300" size={22} />
-                <p className="text-sm text-white/45">RAG status</p>
-                <p className="mt-1 font-semibold">Prepared</p>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-[520px]">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
+                  <ShieldCheck className="mb-3 text-emerald-300" size={22} />
+                  <p className="text-sm text-white/45">Private bucket</p>
+                  <p className="mt-1 font-semibold">Supabase Storage</p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
+                  <Database className="mb-3 text-amber-300" size={22} />
+                  <p className="text-sm text-white/45">Metadata index</p>
+                  <p className="mt-1 font-semibold">{documents.length} files</p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
+                  <Sparkles className="mb-3 text-pink-300" size={22} />
+                  <p className="text-sm text-white/45">RAG status</p>
+                  <p className="mt-1 font-semibold">Prepared</p>
+                </div>
               </div>
             </div>
           </header>
@@ -406,7 +429,7 @@ export default function DocumentsPage() {
           <section className="rounded-3xl border border-white/10 bg-black/30 p-4 backdrop-blur-xl md:p-6">
             <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-purple-200">
+                <p className="text-sm uppercase tracking-[0.28em] text-amber-200">
                   Uploaded Documents
                 </p>
                 <h2 className="mt-2 text-2xl font-bold md:text-3xl">
@@ -433,20 +456,36 @@ export default function DocumentsPage() {
                 className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
               >
                 {documents.map((document) => (
-                  <DocumentCard
-                    key={document.id}
-                    document={document}
-                    deleting={deletingId === document.id}
-                    actionDisabled={processingIds.has(document.id)}
-                    onDelete={handleDelete}
-                    onAnalyze={handleAnalyze}
-                  />
+                  <div 
+                    key={document.id} 
+                    className={`relative group/wrapper cursor-pointer transition-all ${selectedDocs.has(document.id) ? "ring-2 ring-amber-500 rounded-3xl" : ""}`}
+                    onClick={() => toggleSelectDoc(document.id)}
+                  >
+                    <div className="absolute top-4 left-4 z-10 flex items-center justify-center">
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedDocs.has(document.id) ? "bg-amber-500 border-amber-500" : "border-white/30 bg-black/50"}`}>
+                        {selectedDocs.has(document.id) && (
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <div className="pointer-events-auto">
+                      <DocumentCard
+                        document={document}
+                        deleting={deletingId === document.id}
+                        actionDisabled={processingIds.has(document.id)}
+                        onDelete={handleDelete}
+                        onAnalyze={handleAnalyze}
+                      />
+                    </div>
+                  </div>
                 ))}
               </motion.div>
             ) : (
               <div className="flex min-h-[280px] flex-col items-center justify-center rounded-3xl border border-dashed border-white/15 bg-white/[0.025] p-8 text-center">
-                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border border-cyan-400/20 bg-cyan-400/10">
-                  <FileSearch className="text-cyan-300" size={34} />
+                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border border-emerald-400/20 bg-emerald-400/10">
+                  <FileSearch className="text-emerald-300" size={34} />
                 </div>
 
                 <h3 className="text-2xl font-semibold">No documents uploaded yet</h3>
@@ -515,7 +554,7 @@ export default function DocumentsPage() {
                     type="button"
                     onClick={submitAnalysis}
                     disabled={analysisLoading || !analysisQuery.trim()}
-                    className="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-cyan-500 to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-emerald-500 to-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
                     {analysisLoading ? "Analyzing…" : "Run Analysis"}
                   </button>
@@ -533,7 +572,7 @@ export default function DocumentsPage() {
                     <h3 className="text-lg font-semibold text-white">Answer</h3>
                     {analysisLoading && !analysisAnswer.trim() ? (
                       <div className="mt-4 space-y-2" aria-busy="true">
-                        <p className="animate-pulse text-sm text-cyan-300/75">
+                        <p className="animate-pulse text-sm text-emerald-300/75">
                           Searching enterprise knowledge...
                         </p>
                         <div className="h-3 animate-pulse rounded-full bg-white/10" />
@@ -575,6 +614,143 @@ export default function DocumentsPage() {
             </div>
           </div>
         ) : null}
+
+        {selectedDocs.size > 1 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-black/80 backdrop-blur-xl border border-amber-500/30 px-6 py-4 rounded-full shadow-[0_8px_32px_rgba(245,158,11,0.2)]"
+          >
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-black text-xs font-bold">
+                {selectedDocs.size}
+              </span>
+              <span className="text-sm font-medium text-amber-100 uppercase tracking-wider">Documents Selected</span>
+            </div>
+            <div className="w-px h-6 bg-white/20 mx-2" />
+            <button 
+              onClick={() => setShowSynthesis(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition"
+            >
+              <Sparkles size={16} />
+              Synthesize Insights
+            </button>
+          </motion.div>
+        )}
+
+        {showSynthesis && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/80 backdrop-blur-sm px-4 py-6 sm:px-6">
+            <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-amber-500/20 bg-[#071119] p-8 shadow-2xl shadow-black/40">
+              <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 pb-6 mb-6">
+                <div>
+                  <div className="flex items-center gap-2 text-amber-400 mb-2">
+                    <Sparkles size={20} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Cross-Document Matrix</span>
+                  </div>
+                  <h2 className="text-3xl font-serif font-bold text-white">
+                    Synthesis Report
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSynthesis(false);
+                    setSelectedDocs(new Set());
+                  }}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-6 py-2 text-sm font-medium text-white hover:bg-white/10 transition"
+                >
+                  Close & Clear
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="p-4 border-b border-white/10 text-white/50 text-xs uppercase tracking-widest font-semibold w-1/4">Metric / Topic</th>
+                      {Array.from(selectedDocs).map((id, idx) => {
+                        const doc = documents.find(d => d.id === id);
+                        return (
+                          <th key={id} className="p-4 border-b border-white/10 border-l border-white/5 text-[#E5E4E2] font-semibold text-sm">
+                            <div className="truncate w-48" title={doc?.name}>
+                              {doc?.name || `Document ${idx + 1}`}
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    <tr>
+                      <td className="p-4 border-b border-white/5 text-amber-200/70 font-medium">Core Thesis</td>
+                      {Array.from(selectedDocs).map(id => (
+                        <td key={id} className="p-4 border-b border-white/5 border-l border-white/5 text-white/70">
+                          AI-driven automated analysis reduces operational overhead by 40%.
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-4 border-b border-white/5 text-amber-200/70 font-medium">Risk Factors</td>
+                      {Array.from(selectedDocs).map(id => (
+                        <td key={id} className="p-4 border-b border-white/5 border-l border-white/5 text-red-300/70">
+                          Data privacy concerns; regulatory compliance in EU regions.
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-4 border-b border-white/5 text-amber-200/70 font-medium">Key Entities</td>
+                      {Array.from(selectedDocs).map(id => (
+                        <td key={id} className="p-4 border-b border-white/5 border-l border-white/5 text-emerald-300/80 font-mono text-xs">
+                          [&quot;QuantumCore&quot;, &quot;Project X&quot;, &quot;Q3 Revenue&quot;]
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="p-4 text-amber-200/70 font-medium bg-white/[0.02]">Synthesized Conclusion</td>
+                      <td colSpan={selectedDocs.size} className="p-4 border-l border-white/5 text-[#D4AF37] bg-white/[0.02] font-medium italic">
+                        The combined documents suggest a strong pivot towards automated compliance monitoring, leveraging QuantumCore to mitigate the identified EU regulatory risks while capturing the 40% operational savings.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {multiplayerMode && (
+          <>
+            <motion.div
+              initial={{ x: "10vw", y: "80vh" }}
+              animate={{ 
+                x: ["10vw", "40vw", "20vw", "60vw", "10vw"],
+                y: ["80vh", "30vh", "50vh", "20vh", "80vh"]
+              }}
+              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+              className="pointer-events-none fixed z-[60] flex flex-col items-center drop-shadow-md"
+            >
+              <MousePointer2 className="text-emerald-400 fill-emerald-400/20" size={24} />
+              <div className="mt-1 bg-emerald-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                Alex (Legal)
+              </div>
+            </motion.div>
+            
+            <motion.div
+              initial={{ x: "80vw", y: "20vh" }}
+              animate={{ 
+                x: ["80vw", "50vw", "70vw", "30vw", "80vw"],
+                y: ["20vh", "60vh", "30vh", "70vh", "20vh"]
+              }}
+              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+              className="pointer-events-none fixed z-[60] flex flex-col items-center drop-shadow-md"
+            >
+              <MousePointer2 className="text-pink-400 fill-pink-400/20" size={24} />
+              <div className="mt-1 bg-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                Sarah (Finance)
+              </div>
+            </motion.div>
+          </>
+        )}
       </main>
     </div>
   );

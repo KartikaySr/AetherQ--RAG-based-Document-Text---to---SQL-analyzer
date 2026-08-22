@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import type { UploadedDocument } from "../lib/documentTypes";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 type DocumentCardProps = {
   document: UploadedDocument;
@@ -54,7 +55,7 @@ function PipelineStep({ label, state }: PipelineStepProps) {
           : state === "failed"
             ? "border-red-400/20 bg-red-500/10 text-red-200"
             : state === "active"
-              ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
+              ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
               : "border-white/10 bg-white/[0.03] text-white/35"
       }`}
     >
@@ -91,33 +92,52 @@ export default function DocumentCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.28 }}
-      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/20 backdrop-blur-xl transition hover:border-cyan-400/30 hover:shadow-cyan-500/10"
+      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/20 backdrop-blur-xl transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
     >
       <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100">
-        <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-cyan-400/10 blur-3xl" />
-        <div className="absolute -bottom-16 -left-10 h-36 w-36 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute -bottom-16 -left-10 h-36 w-36 rounded-full bg-amber-500/10 blur-3xl" />
       </div>
 
       <div className="relative flex h-full flex-col">
         <div className="mb-5 flex items-start justify-between gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10">
-            <FileText className="text-cyan-300" size={28} />
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10">
+            <FileText className="text-emerald-300" size={28} />
           </div>
 
-          <button
-            type="button"
-            disabled={deleting || actionDisabled}
-            onClick={() => onDelete(document)}
-            aria-label="Delete document"
-            title="Delete document"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {deleting ? (
-              <Loader2 className="animate-spin" size={17} />
-            ) : (
-              <Trash2 size={17} />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={deleting || actionDisabled || !isCompleted}
+              onClick={(e) => {
+                e.stopPropagation();
+                useWorkspaceStore.getState().setCopilotContext(`Summarize and analyze this document: ${document.name}`);
+                useWorkspaceStore.getState().setCopilotOpen(true);
+              }}
+              aria-label="Ask AI about document"
+              title="Ask AI about document"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/10 text-amber-200 transition hover:border-amber-400/50 hover:bg-amber-500/20 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Sparkles size={17} />
+            </button>
+            <button
+              type="button"
+              disabled={deleting || actionDisabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(document);
+              }}
+              aria-label="Delete document"
+              title="Delete document"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {deleting ? (
+                <Loader2 className="animate-spin" size={17} />
+              ) : (
+                <Trash2 size={17} />
+              )}
+            </button>
+          </div>
         </div>
 
         <h3 className="line-clamp-2 min-h-[3.5rem] text-lg font-semibold leading-snug text-white">
@@ -171,7 +191,7 @@ export default function DocumentCard({
               ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
               : isFailed
                 ? "border-red-400/20 bg-red-500/10 text-red-200"
-                : "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
+                : "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
           }`}
         >
           {isProcessing && <Loader2 className="animate-spin" size={14} />}
@@ -202,8 +222,11 @@ export default function DocumentCard({
               !isCompleted ||
               chunkCount === 0
             }
-            onClick={() => onAnalyze?.(document)}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-purple-400/20 bg-purple-500/10 px-4 py-3 text-sm font-medium text-purple-100 transition disabled:cursor-not-allowed disabled:opacity-60 hover:bg-purple-500/20"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAnalyze?.(document);
+            }}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-100 transition disabled:cursor-not-allowed disabled:opacity-60 hover:bg-amber-500/20"
             title={
               isCompleted && chunkCount > 0
                 ? "Ask questions about this document"

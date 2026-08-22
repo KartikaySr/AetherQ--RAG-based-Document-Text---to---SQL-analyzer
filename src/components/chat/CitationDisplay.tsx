@@ -26,10 +26,10 @@ export function CitationDisplay({ chunks }: CitationDisplayProps) {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 border border-green-400/20 px-3 py-1 text-xs text-green-300">
           ✓ Semantic retrieval active
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 px-3 py-1 text-xs text-blue-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 border border-emerald-600/20 px-3 py-1 text-xs text-blue-300">
           {chunks.length} chunks analyzed
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 border border-purple-400/20 px-3 py-1 text-xs text-purple-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-400/20 px-3 py-1 text-xs text-amber-300">
           {clampSimilarityPct(avgSimilarityRaw)}% match strength
         </span>
       </div>
@@ -61,7 +61,7 @@ export function CitationDisplay({ chunks }: CitationDisplayProps) {
                     {chunk.documentName || "Document"}
                   </span>
                 </div>
-                <span className="inline-block rounded-full bg-cyan-500/20 px-2 py-0.5 text-cyan-300 whitespace-nowrap">
+                <span className="inline-block rounded-full bg-emerald-500/20 px-2 py-0.5 text-emerald-300 whitespace-nowrap">
                   {clampSimilarityPct(chunk.similarity)}%
                 </span>
               </div>

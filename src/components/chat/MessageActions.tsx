@@ -5,6 +5,9 @@ import {
   RotateCcw,
   Download,
   Check,
+  Volume2,
+  VolumeX,
+  Presentation,
 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/providers/ToastProvider";
@@ -13,6 +16,7 @@ type MessageActionsProps = {
   content: string;
   onRegenerate?: () => void;
   onExport?: () => void;
+  onPresent?: () => void;
   isRegenerating?: boolean;
 };
 
@@ -20,9 +24,11 @@ export function MessageActions({
   content,
   onRegenerate,
   onExport,
+  onPresent,
   isRegenerating = false,
 }: MessageActionsProps) {
   const [copied, setCopied] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const { addToast } = useToast();
 
   const handleCopy = async () => {
@@ -34,6 +40,23 @@ export function MessageActions({
     } catch {
       addToast("Could not copy", "error");
     }
+  };
+
+  const handleSpeak = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+    
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(content);
+    
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -78,6 +101,35 @@ export function MessageActions({
           Export
         </button>
       )}
+
+      {onPresent && (
+        <button
+          onClick={onPresent}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/10 px-3 py-1.5 text-xs text-[#D4AF37] hover:bg-[#D4AF37]/20 hover:text-[#E6C875] transition"
+          title="Enter Presentation Mode"
+        >
+          <Presentation size={14} />
+          Present
+        </button>
+      )}
+
+      <button
+        onClick={handleSpeak}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition"
+        title={isSpeaking ? "Stop playback" : "Play audio"}
+      >
+        {isSpeaking ? (
+          <>
+            <VolumeX size={14} />
+            Stop
+          </>
+        ) : (
+          <>
+            <Volume2 size={14} />
+            Play Audio
+          </>
+        )}
+      </button>
     </div>
   );
 }

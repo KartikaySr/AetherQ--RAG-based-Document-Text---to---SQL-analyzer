@@ -16,6 +16,14 @@ interface WorkspaceState {
   setSelectedConversation: (id: string | null) => void;
   chatSessionNonce: number;
   bumpChatSession: () => void;
+  
+  // AetherQ 2.0: Global Copilot
+  isCopilotOpen: boolean;
+  setCopilotOpen: (open: boolean) => void;
+  copilotContext: string | null;
+  setCopilotContext: (context: string | null) => void;
+  pendingGlobalPrompt: string | null;
+  setPendingGlobalPrompt: (prompt: string | null) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
@@ -31,4 +39,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   chatSessionNonce: 0,
   bumpChatSession: () =>
     set((state) => ({ chatSessionNonce: state.chatSessionNonce + 1 })),
+    
+  isCopilotOpen: false,
+  setCopilotOpen: (open) => set({ isCopilotOpen: open }),
+  copilotContext: null,
+  setCopilotContext: (context) => set({ copilotContext: context }),
+  pendingGlobalPrompt: null,
+  setPendingGlobalPrompt: (prompt) => set({ pendingGlobalPrompt: prompt }),
 }));

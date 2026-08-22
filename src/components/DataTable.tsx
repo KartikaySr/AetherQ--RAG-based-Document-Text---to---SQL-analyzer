@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 type Row = Record<string, unknown>;
 
@@ -54,6 +56,7 @@ export function DataTable({ rows, isLoading, caption }: DataTableProps) {
     return <EmptyState />;
   }
 
+  const { setCopilotOpen, setCopilotContext } = useWorkspaceStore();
   const keys = Object.keys(rows[0]);
 
   return (
@@ -72,11 +75,12 @@ export function DataTable({ rows, isLoading, caption }: DataTableProps) {
                   <th
                     key={key}
                     scope="col"
-                    className="whitespace-nowrap px-3 py-2.5 font-semibold text-cyan-200/90"
+                    className="whitespace-nowrap px-3 py-2.5 font-semibold text-emerald-200/90"
                   >
                     {key.replace(/_/g, " ")}
                   </th>
                 ))}
+                <th scope="col" className="px-3 py-2.5"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -86,7 +90,7 @@ export function DataTable({ rows, isLoading, caption }: DataTableProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: Math.min(ri * 0.018, 0.35), duration: 0.28 }}
-                  className="transition hover:bg-white/[0.045]"
+                  className="group transition hover:bg-white/[0.045]"
                 >
                   {keys.map((key) => (
                     <td
@@ -99,6 +103,18 @@ export function DataTable({ rows, isLoading, caption }: DataTableProps) {
                       </span>
                     </td>
                   ))}
+                  <td className="px-3 py-2 text-right">
+                    <button
+                      onClick={() => {
+                        setCopilotContext(`Explain this data point: ${JSON.stringify(row)}`);
+                        setCopilotOpen(true);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40 border border-emerald-400/30 shadow-emerald-facet"
+                      title="Ask AI about this row"
+                    >
+                      <Sparkles size={14} />
+                    </button>
+                  </td>
                 </motion.tr>
               ))}
             </tbody>
