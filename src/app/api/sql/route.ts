@@ -60,7 +60,7 @@ ${schemaStr}
 Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any explanation. Just the SQL.`;
 
     const { text: generatedSql } = await generateText({
-      model: groq("llama-3.1-8b-instant"),
+      model: groq("qwen/qwen3.8-27b"),
       system: systemPrompt,
       prompt: query,
     });
@@ -69,7 +69,7 @@ Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any ex
 
     // Now attempt to run the SQL using pg client
     let rows: any[] = [];
-    let explanation = `I translated your request into the following query:\n\`\`\`sql\n${cleanSql}\n\`\`\`\n\n`;
+    let explanation = `### Generated SQL Query\n\`\`\`sql\n${cleanSql}\n\`\`\`\n\n`;
 
     try {
       if (process.env.DATABASE_URL) {
@@ -78,13 +78,24 @@ Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any ex
         const res = await client.query(cleanSql);
         rows = res.rows;
         await client.end();
-        explanation += `The query executed successfully and returned ${rows.length} rows.`;
+        
+        explanation += `### Query Results\n`;
+        if (rows.length > 0) {
+          const keys = Object.keys(rows[0]);
+          explanation += `| ${keys.join(" | ")} |\n`;
+          explanation += `| ${keys.map(() => "---").join(" | ")} |\n`;
+          rows.forEach(row => {
+            explanation += `| ${keys.map(k => String(row[k])).join(" | ")} |\n`;
+          });
+        } else {
+          explanation += `*No rows returned.*\n`;
+        }
       } else {
-        explanation += `Note: No DATABASE_URL provided, so I couldn't execute the query to get live results.`;
+        explanation += `> **Note:** No DATABASE_URL provided, so live results could not be fetched.`;
       }
     } catch (pgError: any) {
       console.error("PG Execution Error:", pgError);
-      explanation += `I couldn't run this query successfully against the database. The database connection may be invalid or the tables may not exist yet. Error: ${pgError.message}`;
+      explanation += `> **Error:** I couldn't run this query successfully. \`${pgError.message}\``;
     }
 
     return NextResponse.json({

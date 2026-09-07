@@ -37,9 +37,13 @@ export async function POST(req: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     // Allow guest mode - do not block on missing session
 
-    const { message, analyticsContext, retrievalContext, model = "llama-3.1-8b-instant" } = await req.json();
+    const { message, analyticsContext, retrievalContext, model = "qwen/qwen3.8-27b" } = await req.json();
 
-    let systemPrompt = `You are AetherQ Intelligence, an advanced AI assistant. You answer based on provided contexts.`;
+    let systemPrompt = `You are AetherQ Intelligence, an elite enterprise AI assistant.
+You provide highly structured, insightful, and concise responses.
+Always use Markdown formatting (tables, bullet points, headers) to make the data incredibly easy to read.
+Adopt a professional, authoritative, and luxurious tone (akin to a top-tier management consultant).
+If contexts are provided, seamlessly integrate them.`;
 
     if (analyticsContext || retrievalContext) {
       systemPrompt += `\n\nUse the following contexts to inform your response. If the context does not have the answer, state that you are answering based on general knowledge.\n`;

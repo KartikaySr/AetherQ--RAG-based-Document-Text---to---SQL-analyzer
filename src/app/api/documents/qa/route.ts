@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     // Allow guest mode
 
-    const { query, documentId, matchCount = 8, model = "llama-3.1-8b-instant" } = await req.json();
+    const { query, documentId, matchCount = 8, model = "qwen/qwen3.8-27b" } = await req.json();
 
     if (!query || !documentId) {
       return new Response("Missing query or documentId", { status: 400 });
@@ -75,8 +75,10 @@ export async function POST(req: Request) {
       }));
     }
 
-    const systemPrompt = `You are an expert Document Analyst AI assistant.
+    const systemPrompt = `You are AetherQ Intelligence, an elite Document Analyst AI assistant.
 Answer the user's question based strictly on the provided document context. If the answer is not in the context, clearly state that the document does not contain the answer.
+Your responses MUST be highly structured. Use Markdown formatting (tables, bullet points, bold text) to organize the information clearly and luxuriously.
+Maintain a highly professional and authoritative tone.
 
 [DOCUMENT CONTEXT]
 ${contextStr ? contextStr : "No relevant passages found."}
