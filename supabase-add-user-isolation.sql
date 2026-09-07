@@ -114,26 +114,26 @@ USING (auth.uid() = user_id);
 -- STEP 6: Create RLS policies for document_extractions (if exists)
 -- ============================================================================
 
-CREATE POLICY IF NOT EXISTS "document_extractions_select_authenticated"
+CREATE POLICY "document_extractions_select_authenticated"
 ON public.document_extractions
 FOR SELECT
 TO authenticated
 USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "document_extractions_insert_authenticated"
+CREATE POLICY "document_extractions_insert_authenticated"
 ON public.document_extractions
 FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "document_extractions_update_authenticated"
+CREATE POLICY "document_extractions_update_authenticated"
 ON public.document_extractions
 FOR UPDATE
 TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "document_extractions_delete_authenticated"
+CREATE POLICY "document_extractions_delete_authenticated"
 ON public.document_extractions
 FOR DELETE
 TO authenticated

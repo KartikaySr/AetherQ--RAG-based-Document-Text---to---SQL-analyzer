@@ -168,13 +168,13 @@ export default function WorkspacePage() {
               <Sparkles className="w-4 h-4 text-emerald-400" />
               Intelligence Mesh Active
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-4">
+            <h1 className="text-4xl md:text-5xl font-light tracking-wide text-white mb-4">
               {greeting},<br />
-              <span className="bg-gradient-to-r from-emerald-400 via-emerald-600 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              <span className="font-serif italic bg-gradient-to-r from-emerald-400 via-emerald-600 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                 {displayName}
               </span>
             </h1>
-            <p className="text-xl text-white/50 leading-relaxed font-light">
+            <p className="text-lg text-white/50 leading-relaxed font-light">
               Your workspace is cryptographically isolated. Deploy modules below to analyze data, query files, or collaborate with AetherQ.
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function WorkspacePage() {
             <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">
               Vault Documents
             </p>
-            <p className="text-5xl font-bold text-white tracking-tight">
+            <p className="text-4xl font-light text-white tracking-wide">
               {stats.documentCount}
             </p>
           </GlassCard>
@@ -214,7 +214,7 @@ export default function WorkspacePage() {
             <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">
               Saved Conversations
             </p>
-            <p className="text-5xl font-bold text-white tracking-tight">
+            <p className="text-4xl font-light text-white tracking-wide">
               {stats.conversationCount}
             </p>
           </GlassCard>
@@ -222,7 +222,7 @@ export default function WorkspacePage() {
             <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400/80 mb-3">
               Isolation Level
             </p>
-            <p className="text-3xl font-bold text-white tracking-tight mb-2">Absolute</p>
+            <p className="text-2xl font-light text-white tracking-wide mb-2">Absolute</p>
             <p className="text-xs text-white/40 font-medium">Row Level Security Active</p>
           </GlassCard>
         </div>
@@ -240,8 +240,8 @@ export default function WorkspacePage() {
                   <div className={`w-16 h-16 rounded-[20px] bg-gradient-to-br ${feature.bg} to-transparent border border-white/10 flex items-center justify-center mb-8 shadow-lg ${feature.shadow} group-hover:scale-110 transition-transform duration-500`}>
                     <Icon className={`w-8 h-8 ${feature.iconColor} drop-shadow-md`} />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">{feature.title}</h3>
-                  <p className="text-white/50 text-base leading-relaxed font-light">
+                  <h3 className="text-xl font-medium font-sans text-white mb-3 tracking-wide">{feature.title}</h3>
+                  <p className="text-white/40 text-sm leading-relaxed font-light">
                     {feature.description}
                   </p>
                 </div>

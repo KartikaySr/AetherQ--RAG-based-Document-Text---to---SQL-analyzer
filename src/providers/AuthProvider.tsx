@@ -106,30 +106,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInAsGuest = async () => {
     const client = supabaseRef.current ?? createClient();
-    const guestEmail = "guest@aetherq.com";
-    const guestPassword = "guestpassword123!";
     
-    // Attempt sign in first
-    const { data, error } = await client.auth.signInWithPassword({
-      email: guestEmail,
-      password: guestPassword,
-    });
+    const { error } = await client.auth.signInAnonymously();
     
-    // If user doesn't exist, sign them up
-    if (error && error.message.includes("Invalid login credentials")) {
-      const { data: signUpData, error: signUpError } = await client.auth.signUp({
-        email: guestEmail,
-        password: guestPassword,
-      });
-      if (signUpError) throw signUpError;
-      
-      // Check if email confirmation is required (session will be null)
-      if (signUpData.user && !signUpData.session) {
-         throw new Error("Guest created, but email confirmation is ON. Please disable 'Confirm email' in Supabase Auth settings.");
+    if (error) {
+      if (error.message.includes("Anonymous sign-ins are disabled") || error.message.includes("Signups not allowed")) {
+        throw new Error("Anonymous sign-ins are not enabled. Please enable 'Anonymous sign-ins' in your Supabase Auth Providers settings.");
       }
-    } else if (error && error.message.includes("Email not confirmed")) {
-      throw new Error("Email confirmation is ON. Please disable 'Confirm email' in Supabase Auth settings, or manually verify guest@aetherq.com.");
-    } else if (error) {
       throw error;
     }
   };

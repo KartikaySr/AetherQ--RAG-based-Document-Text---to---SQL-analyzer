@@ -34,7 +34,7 @@ export function Sidebar() {
 
   const navItems = [
     { 
-      href: "/workspace/dashboard", 
+      href: "/workspace", 
       icon: LayoutDashboard, 
       label: "Command Center", 
       activeBorder: "border-purple-500/30",
@@ -45,6 +45,19 @@ export function Sidebar() {
       shadowLight: "rgba(168,85,247,0.1)",
       shadowStrong: "rgba(168,85,247,0.5)",
       borderColor: "border-purple-500/20"
+    },
+    { 
+      href: "/workspace/analytics", 
+      icon: Database, 
+      label: "Data Analytics", 
+      activeBorder: "border-amber-500/30",
+      activeBg: "bg-amber-500/10",
+      activeText: "text-amber-400",
+      hoverText: "group-hover:text-amber-300",
+      indicatorColor: "bg-amber-400",
+      shadowLight: "rgba(245,158,11,0.1)",
+      shadowStrong: "rgba(245,158,11,0.5)",
+      borderColor: "border-amber-500/20"
     },
     { 
       href: "/workspace/assurance", 
@@ -61,7 +74,7 @@ export function Sidebar() {
     },
     { 
       href: "/workspace/mna", 
-      icon: Database, 
+      icon: Sparkles, 
       label: "M&A Risk Prediction", 
       activeBorder: "border-amber-500/30",
       activeBg: "bg-amber-500/10",

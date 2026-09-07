@@ -22,8 +22,8 @@ export default function TaxRoutingPage() {
               <Webhook size={14} />
               Module Active
             </div>
-            <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl text-white mb-4">
-              Dynamic Tax Routing
+            <h1 className="text-4xl md:text-5xl font-light tracking-wide text-white mb-4">
+              Dynamic <span className="font-serif italic text-pink-400 drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]">Tax Routing</span>
             </h1>
             <p className="max-w-2xl text-lg text-white/60 font-light">
               Visualize supply chain cash flows and detect OECD Pillar Two anomalies. Optimize transfer pricing in real-time across global entities.
@@ -34,7 +34,7 @@ export default function TaxRoutingPage() {
             <div className="lg:col-span-2">
               <GlassCard className="h-full p-6 flex flex-col" interactive={false}>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold font-serif text-[#D4AF37]">Global Supply Chain Map</h2>
+                  <h2 className="text-xl font-medium font-sans text-white tracking-wide">Global Supply Chain Map</h2>
                   <Map size={18} className="text-white/40" />
                 </div>
                 

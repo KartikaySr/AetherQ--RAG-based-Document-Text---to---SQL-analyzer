@@ -23,8 +23,8 @@ export default function ContinuousAssurancePage() {
               <ShieldCheck size={14} />
               Module Active
             </div>
-            <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl text-white mb-4">
-              Continuous Assurance
+            <h1 className="text-4xl md:text-5xl font-light tracking-wide text-white mb-4">
+              Continuous <span className="font-serif italic text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">Assurance</span>
             </h1>
             <p className="max-w-2xl text-lg text-white/60 font-light">
               Real-time audit intelligence. Red Team algorithms probe for vulnerabilities while Blue Team agents enforce compliance and reconcile ERP streams dynamically.
@@ -36,7 +36,7 @@ export default function ContinuousAssurancePage() {
             <div className="lg:col-span-2">
               <GlassCard className="h-full p-6" interactive={false}>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold font-serif text-[#D4AF37]">Temporal Sync Graph</h2>
+                  <h2 className="text-xl font-medium font-sans text-white tracking-wide">Temporal Sync Graph</h2>
                   <div className="flex items-center gap-2 text-sm text-white/50">
                     <Activity size={16} className="text-emerald-400" /> Live Feed
                   </div>
@@ -64,7 +64,7 @@ export default function ContinuousAssurancePage() {
             {/* Red Team vs Blue Team Feed */}
             <div className="lg:col-span-1">
               <GlassCard className="h-full p-6 flex flex-col" interactive={false}>
-                <h2 className="text-xl font-bold font-serif text-[#D4AF37] mb-6">Agent Event Stream</h2>
+                <h2 className="text-xl font-medium font-sans text-white tracking-wide mb-6">Agent Event Stream</h2>
                 <div className="flex-1 space-y-4">
                   {erpEvents.map((evt, i) => (
                     <motion.div 

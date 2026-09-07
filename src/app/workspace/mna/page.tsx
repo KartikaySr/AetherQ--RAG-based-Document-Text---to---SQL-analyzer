@@ -23,8 +23,8 @@ export default function MnaRiskPage() {
               <Briefcase size={14} />
               Module Active
             </div>
-            <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl text-white mb-4">
-              M&A Risk Prediction
+            <h1 className="text-4xl md:text-5xl font-light tracking-wide text-white mb-4">
+              M&A <span className="font-serif italic text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">Risk Prediction</span>
             </h1>
             <p className="max-w-2xl text-lg text-white/60 font-light">
               Predictive synergy modeling and deep diligence. Uncover cultural friction, hidden liabilities, and exact integration timelines before the ink dries.
@@ -68,7 +68,7 @@ export default function MnaRiskPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <GlassCard className="p-6" interactive={false}>
-              <h2 className="text-xl font-bold font-serif text-[#D4AF37] mb-6">Friction Matrix</h2>
+              <h2 className="text-xl font-medium font-sans text-white tracking-wide mb-6">Friction Matrix</h2>
               <div className="space-y-6">
                 {riskFactors.map((factor) => (
                   <div key={factor.id}>
@@ -92,7 +92,7 @@ export default function MnaRiskPage() {
             </GlassCard>
             
             <GlassCard className="p-6" interactive={false}>
-              <h2 className="text-xl font-bold font-serif text-[#D4AF37] mb-6">Document Intelligence</h2>
+              <h2 className="text-xl font-medium font-sans text-white tracking-wide mb-6">Document Intelligence</h2>
               <div className="flex items-center justify-center h-48 border border-dashed border-white/10 rounded-2xl bg-black/20">
                 <div className="text-center">
                   <Briefcase size={32} className="text-white/20 mx-auto mb-3" />
