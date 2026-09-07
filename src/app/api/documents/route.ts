@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ documents: [] });
     }
 
     // Since RLS is probably enabled, they'll only see their own docs (if storage_path contains their UUID or if we set up RLS on documents_metadata properly)

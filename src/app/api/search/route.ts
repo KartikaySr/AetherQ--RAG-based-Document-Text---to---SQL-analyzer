@@ -27,9 +27,7 @@ export async function POST(req: Request) {
     );
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Allow guest mode
 
     const { query, matchCount = 10 } = await req.json();
 

@@ -9,6 +9,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -84,7 +85,6 @@ export function GlassCard({
       className={`relative group overflow-hidden rounded-[40px] border border-amber-500/10 bg-black/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(251,191,36,0.15)] transition-colors duration-500 hover:border-amber-400/30 ${className} ${href ? 'cursor-pointer' : ''}`}
       onClick={(e) => {
         if (onClick) onClick();
-        if (href) router.push(href);
       }}
     >
       {/* Dynamic Glare */}
@@ -101,6 +101,14 @@ export function GlassCard({
       <div className="relative z-10 h-full">{children}</div>
     </Component>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block w-full h-full">
+        {innerContent}
+      </Link>
+    );
+  }
 
   return innerContent;
 }

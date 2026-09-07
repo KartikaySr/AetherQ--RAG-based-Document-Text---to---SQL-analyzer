@@ -35,11 +35,9 @@ export async function POST(req: Request) {
     );
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    // Allow guest mode
 
-    const { query, documentId, matchCount = 8, model = "llama3-8b-8192" } = await req.json();
+    const { query, documentId, matchCount = 8, model = "llama-3.1-8b-instant" } = await req.json();
 
     if (!query || !documentId) {
       return new Response("Missing query or documentId", { status: 400 });

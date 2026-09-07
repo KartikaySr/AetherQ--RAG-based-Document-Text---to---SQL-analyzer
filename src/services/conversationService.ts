@@ -60,49 +60,83 @@ function isGuestMode() {
   );
 }
 
+// Guest Storage Helpers
+const GUEST_STORAGE_KEY = "aetherq_guest_conversations";
+
+function getGuestConversations(): LoadedConversation[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(GUEST_STORAGE_KEY);
+  if (!data) return [];
+  try {
+    const parsed = JSON.parse(data);
+    return parsed.map((c: any) => ({
+      ...c,
+      createdAt: new Date(c.createdAt),
+      updatedAt: new Date(c.updatedAt),
+      messages: c.messages.map((m: any) => ({
+        ...m,
+        timestamp: new Date(m.timestamp),
+      })),
+    }));
+  } catch (e) {
+    console.error("Error parsing guest conversations", e);
+    return [];
+  }
+}
+
+function saveGuestConversations(conversations: LoadedConversation[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(conversations));
+  }
+}
+
 export const conversationService = {
   async getConversations(): Promise<
     ConversationSummary[]
   > {
     try {
-      if (isGuestMode()) return [];
+      let dbConversations: ConversationSummary[] = [];
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      if (!isGuestMode()) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) return [];
+        if (user) {
+          const { data, error } = await supabase
+            .from("conversations")
+            .select("id, title, updated_at")
+            .eq("user_id", user.id)
+            .order("updated_at", {
+              ascending: false,
+            });
 
-      const { data, error } = await supabase
-        .from("conversations")
-        .select("id, title, updated_at")
-        .eq("user_id", user.id)
-        .order("updated_at", {
-          ascending: false,
-        });
-
-      if (error || !data) {
-        console.error(
-          "GET CONVERSATIONS ERROR:",
-          error
-        );
-
-        return [];
+          if (!error && data) {
+            dbConversations = data.map((row) => ({
+              id: row.id,
+              title: row.title,
+              updatedAt: new Date(row.updated_at),
+            }));
+          } else {
+            console.error("GET CONVERSATIONS ERROR:", error);
+          }
+        }
       }
 
-      return data.map((row) => ({
-        id: row.id,
-        title: row.title,
-        updatedAt: new Date(
-          row.updated_at
-        ),
+      // Also grab guest conversations to show them in the sidebar
+      const guestConvs = getGuestConversations().map(c => ({
+        id: c.id,
+        title: c.title,
+        updatedAt: c.updatedAt
       }));
-    } catch (err) {
-      console.error(
-        "GET CONVERSATIONS CATCH:",
-        err
-      );
 
+      // Combine and sort by updated date descending
+      const all = [...guestConvs, ...dbConversations];
+      all.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+      return all;
+    } catch (err) {
+      console.error("GET CONVERSATIONS CATCH:", err);
       return [];
     }
   },
@@ -111,7 +145,12 @@ export const conversationService = {
     id: string
   ): Promise<LoadedConversation | null> {
     try {
-      if (isGuestMode() || id.startsWith("guest-")) return null;
+      if (id.startsWith("guest-")) {
+        const guestConvs = getGuestConversations();
+        return guestConvs.find(c => c.id === id) || null;
+      }
+
+      if (isGuestMode()) return null;
 
       const {
         data: { user },
@@ -132,11 +171,7 @@ export const conversationService = {
         .maybeSingle();
 
       if (convError || !conv) {
-        console.error(
-          "GET CONVERSATION ERROR:",
-          convError
-        );
-
+        console.error("GET CONVERSATION ERROR:", convError);
         return null;
       }
 
@@ -154,11 +189,7 @@ export const conversationService = {
         });
 
       if (msgError) {
-        console.error(
-          "GET MESSAGES ERROR:",
-          msgError
-        );
-
+        console.error("GET MESSAGES ERROR:", msgError);
         return null;
       }
 
@@ -173,100 +204,94 @@ export const conversationService = {
       return {
         id: conv.id,
         title: conv.title,
-        mode: normalizeMode(
-          conv.mode
-        ),
+        mode: normalizeMode(conv.mode),
         messages,
-        createdAt: new Date(
-          conv.created_at
-        ),
-        updatedAt: new Date(
-          conv.updated_at
-        ),
+        createdAt: new Date(conv.created_at),
+        updatedAt: new Date(conv.updated_at),
       };
     } catch (err) {
-      console.error(
-        "GET CONVERSATION CATCH:",
-        err
-      );
-
+      console.error("GET CONVERSATION CATCH:", err);
       return null;
     }
   },
 
   async createConversation(title: string, mode: string) {
-  try {
-    if (isGuestMode()) {
-      const now = new Date().toISOString();
-      return {
-        id: `guest-${Date.now()}-${crypto.randomUUID()}`,
-        user_id: "guest",
-        title,
-        mode,
-        created_at: now,
-        updated_at: now,
-      };
-    }
+    try {
+      if (isGuestMode()) {
+        const now = new Date();
+        const id = `guest-${Date.now()}-${crypto.randomUUID()}`;
+        const newConv: LoadedConversation = {
+          id,
+          title,
+          mode: normalizeMode(mode),
+          messages: [],
+          createdAt: now,
+          updatedAt: now
+        };
+        const guestConvs = getGuestConversations();
+        saveGuestConversations([newConv, ...guestConvs]);
 
-    console.log("=== CREATE CONVERSATION START ===");
+        return {
+          id,
+          user_id: "guest",
+          title,
+          mode,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+        };
+      }
 
-    const authResponse = await supabase.auth.getSession();
+      console.log("=== CREATE CONVERSATION START ===");
+      const authResponse = await supabase.auth.getSession();
+      const session = authResponse.data.session;
 
-    console.log("FULL SESSION:", authResponse);
+      if (!session) {
+        console.error("NO SESSION FOUND");
+        return null;
+      }
 
-    const session = authResponse.data.session;
+      const user = session.user;
+      const safeMode =
+        mode === "documents"
+          ? "documents"
+          : mode === "analytics"
+            ? "general"
+            : "general";
 
-    if (!session) {
-      console.error("NO SESSION FOUND");
+      const { data, error } = await supabase
+        .from("conversations")
+        .insert({
+          user_id: user.id,
+          title,
+          mode: safeMode,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("SUPABASE INSERT ERROR:", error);
+        return null;
+      }
+
+      return data;
+    } catch (err) {
+      console.error("CREATE CONVERSATION CRASH:", err);
       return null;
     }
-
-    const user = session.user;
-
-    console.log("USER:", user);
-
-    const safeMode =
-      mode === "documents"
-        ? "documents"
-        : mode === "analytics"
-          ? "general"
-          : "general";
-
-    console.log("INSERTING:", {
-      user_id: user.id,
-      title,
-      mode: safeMode,
-    });
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert({
-        user_id: user.id,
-        title,
-        mode: safeMode,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("SUPABASE INSERT ERROR:", error);
-      return null;
-    }
-
-    console.log("SUCCESS:", data);
-
-    return data;
-  } catch (err) {
-    console.error("CREATE CONVERSATION CRASH:", err);
-    return null;
-  }
-},
+  },
 
   async deleteConversation(
     id: string
   ): Promise<boolean> {
     try {
-      if (isGuestMode() || id.startsWith("guest-")) return true;
+      if (id.startsWith("guest-")) {
+        const guestConvs = getGuestConversations();
+        const filtered = guestConvs.filter(c => c.id !== id);
+        saveGuestConversations(filtered);
+        return true;
+      }
+
+      if (isGuestMode()) return true;
 
       const {
         data: { user },
@@ -282,21 +307,13 @@ export const conversationService = {
           .eq("user_id", user.id);
 
       if (error) {
-        console.error(
-          "DELETE CONVERSATION ERROR:",
-          error
-        );
-
+        console.error("DELETE CONVERSATION ERROR:", error);
         return false;
       }
 
       return true;
     } catch (err) {
-      console.error(
-        "DELETE CONVERSATION CATCH:",
-        err
-      );
-
+      console.error("DELETE CONVERSATION CATCH:", err);
       return false;
     }
   },
@@ -306,7 +323,18 @@ export const conversationService = {
     messages: ChatMessage[]
   ): Promise<boolean> {
     try {
-      if (isGuestMode() || conversationId.startsWith("guest-")) return true;
+      if (conversationId.startsWith("guest-")) {
+        const guestConvs = getGuestConversations();
+        const convIndex = guestConvs.findIndex(c => c.id === conversationId);
+        if (convIndex !== -1) {
+          guestConvs[convIndex].messages = messages;
+          guestConvs[convIndex].updatedAt = new Date();
+          saveGuestConversations(guestConvs);
+        }
+        return true;
+      }
+
+      if (isGuestMode()) return true;
 
       const {
         data: { user },
@@ -325,11 +353,7 @@ export const conversationService = {
         .maybeSingle();
 
       if (convErr || !conv) {
-        console.error(
-          "VERIFY CONVERSATION ERROR:",
-          convErr
-        );
-
+        console.error("VERIFY CONVERSATION ERROR:", convErr);
         return false;
       }
 
@@ -337,33 +361,20 @@ export const conversationService = {
         await supabase
           .from("messages")
           .delete()
-          .eq(
-            "conversation_id",
-            conversationId
-          );
+          .eq("conversation_id", conversationId);
 
       if (delErr) {
-        console.error(
-          "DELETE MESSAGES ERROR:",
-          delErr
-        );
-
+        console.error("DELETE MESSAGES ERROR:", delErr);
         return false;
       }
 
-      const persistable =
-        messages.filter(
-          (m) => m.id !== "welcome"
-        );
+      const persistable = messages.filter((m) => m.id !== "welcome");
 
-      if (
-        persistable.length === 0
-      ) {
+      if (persistable.length === 0) {
         await supabase
           .from("conversations")
           .update({
-            updated_at:
-              new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq("id", conversationId)
           .eq("user_id", user.id);
@@ -371,49 +382,36 @@ export const conversationService = {
         return true;
       }
 
-      const rows =
-        persistable.map((m) => ({
-          conversation_id:
-            conversationId,
-          role: m.role,
-          content: m.content,
-          chunks:
-            m.chunks &&
-            m.chunks.length > 0
-              ? m.chunks
-              : null,
-        }));
+      const rows = persistable.map((m) => ({
+        conversation_id: conversationId,
+        role: m.role,
+        content: m.content,
+        chunks:
+          m.chunks && m.chunks.length > 0
+            ? m.chunks
+            : null,
+      }));
 
-      const { error: insErr } =
-        await supabase
-          .from("messages")
-          .insert(rows);
+      const { error: insErr } = await supabase
+        .from("messages")
+        .insert(rows);
 
       if (insErr) {
-        console.error(
-          "INSERT MESSAGES ERROR:",
-          insErr
-        );
-
+        console.error("INSERT MESSAGES ERROR:", insErr);
         return false;
       }
 
       await supabase
         .from("conversations")
         .update({
-          updated_at:
-            new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .eq("id", conversationId)
         .eq("user_id", user.id);
 
       return true;
     } catch (err) {
-      console.error(
-        "REPLACE MESSAGES CATCH:",
-        err
-      );
-
+      console.error("REPLACE MESSAGES CATCH:", err);
       return false;
     }
   },
@@ -423,7 +421,18 @@ export const conversationService = {
     title: string
   ): Promise<boolean> {
     try {
-      if (isGuestMode() || conversationId.startsWith("guest-")) return true;
+      if (conversationId.startsWith("guest-")) {
+        const guestConvs = getGuestConversations();
+        const convIndex = guestConvs.findIndex(c => c.id === conversationId);
+        if (convIndex !== -1) {
+          guestConvs[convIndex].title = title;
+          guestConvs[convIndex].updatedAt = new Date();
+          saveGuestConversations(guestConvs);
+        }
+        return true;
+      }
+
+      if (isGuestMode()) return true;
 
       const {
         data: { user },
@@ -436,28 +445,19 @@ export const conversationService = {
           .from("conversations")
           .update({
             title,
-            updated_at:
-              new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq("id", conversationId)
           .eq("user_id", user.id);
 
       if (error) {
-        console.error(
-          "UPDATE TITLE ERROR:",
-          error
-        );
-
+        console.error("UPDATE TITLE ERROR:", error);
         return false;
       }
 
       return true;
     } catch (err) {
-      console.error(
-        "UPDATE TITLE CATCH:",
-        err
-      );
-
+      console.error("UPDATE TITLE CATCH:", err);
       return false;
     }
   },

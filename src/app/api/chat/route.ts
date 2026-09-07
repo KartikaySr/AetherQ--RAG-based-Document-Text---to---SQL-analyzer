@@ -35,11 +35,9 @@ export async function POST(req: Request) {
     );
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    // Allow guest mode - do not block on missing session
 
-    const { message, analyticsContext, retrievalContext, model = "llama3-8b-8192" } = await req.json();
+    const { message, analyticsContext, retrievalContext, model = "llama-3.1-8b-instant" } = await req.json();
 
     let systemPrompt = `You are AetherQ Intelligence, an advanced AI assistant. You answer based on provided contexts.`;
 

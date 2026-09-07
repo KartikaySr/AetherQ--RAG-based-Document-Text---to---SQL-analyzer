@@ -94,6 +94,7 @@ function ChatWorkspace() {
     createWelcomeMessage(),
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
 
@@ -666,6 +667,42 @@ function ChatWorkspace() {
     [dispatchUserTurn]
   );
 
+  const handleFileUpload = useCallback(async (file: File) => {
+    setIsUploadingFile(true);
+    addToast(`Uploading ${file.name}...`, "info");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const { document } = await response.json() as { document: UploadedDocument };
+      setDocuments(prev => [document, ...prev]);
+      setSelectedDocumentId(document.id);
+      
+      fetch("/api/documents/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentId: document.id }),
+      }).catch(console.error);
+      
+      setMode("documents");
+      addToast("Document uploaded! It is now being processed for semantic search.", "success");
+    } catch (error) {
+      console.error(error);
+      addToast("Failed to upload document", "error");
+    } finally {
+      setIsUploadingFile(false);
+    }
+  }, [addToast, setMode, setSelectedDocumentId]);
+
   // Handle incoming global Copilot commands
   useEffect(() => {
     if (pendingGlobalPrompt && !isLoading) {
@@ -889,6 +926,8 @@ function ChatWorkspace() {
               documents={documents}
               selectedDocumentId={selectedDocumentId}
               onDocumentChange={setSelectedDocumentId}
+              onFileUpload={handleFileUpload}
+              isUploadingFile={isUploadingFile}
             />
           </div>
         </div>

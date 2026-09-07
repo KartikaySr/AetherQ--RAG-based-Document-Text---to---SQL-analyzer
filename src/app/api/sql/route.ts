@@ -32,9 +32,7 @@ export async function POST(req: Request) {
     );
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Allow guest mode
 
     const { query } = await req.json();
 
@@ -62,7 +60,7 @@ ${schemaStr}
 Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any explanation. Just the SQL.`;
 
     const { text: generatedSql } = await generateText({
-      model: groq("llama3-8b-8192"),
+      model: groq("llama-3.1-8b-instant"),
       system: systemPrompt,
       prompt: query,
     });

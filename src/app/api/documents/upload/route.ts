@@ -41,9 +41,7 @@ export async function POST(request: Request) {
     );
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = session?.user?.id || null;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -56,7 +54,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // 1. Upload to Supabase Storage
-    const storagePath = `documents/${session.user.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+    const storagePath = `documents/${userId || "guest"}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
     const { error: uploadError } = await supabase.storage
       .from("documents")
       .upload(storagePath, arrayBuffer, {
@@ -74,7 +72,7 @@ export async function POST(request: Request) {
         name: file.name,
         size: file.size,
         storage_path: storagePath,
-        user_id: session.user.id,
+        user_id: userId,
       })
       .select("id")
       .single();
@@ -125,7 +123,7 @@ export async function POST(request: Request) {
           chunk_text: batch[j],
           chunk_index: i + j,
           embedding: embeddings[j], // array of floats
-          user_id: session.user.id,
+          user_id: userId,
         });
       }
     }

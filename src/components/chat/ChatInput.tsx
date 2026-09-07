@@ -9,7 +9,8 @@ import {
   BarChart3,
   Mic,
   Image as ImageIcon,
-  X
+  X,
+  Paperclip
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { UploadedDocument } from "@/lib/documentTypes";
@@ -23,6 +24,8 @@ type ChatInputProps = {
   documents?: UploadedDocument[];
   selectedDocumentId?: string | null;
   onDocumentChange?: (id: string | null) => void;
+  onFileUpload?: (file: File) => Promise<void>;
+  isUploadingFile?: boolean;
 };
 
 export function ChatInput({
@@ -32,6 +35,8 @@ export function ChatInput({
   documents = [],
   selectedDocumentId = null,
   onDocumentChange,
+  onFileUpload,
+  isUploadingFile = false,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [baseInput, setBaseInput] = useState("");
@@ -70,6 +75,12 @@ export function ChatInput({
       setInput("");
       setBaseInput("");
       setSelectedImage(null);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && onFileUpload) {
+      await onFileUpload(e.target.files[0]);
     }
   };
 
@@ -199,15 +210,34 @@ export function ChatInput({
             </button>
           </div>
         )}
+        {isUploadingFile && (
+          <div className="absolute left-3 top-[-30px] flex items-center gap-2 bg-emerald-500/10 text-emerald-300 text-xs rounded-full px-3 py-1 border border-emerald-500/20 z-10">
+            <Loader2 className="animate-spin" size={12} />
+            Uploading document...
+          </div>
+        )}
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          disabled={isLoading || disabled}
+          disabled={isLoading || disabled || isUploadingFile}
           rows={2}
           className="min-h-[48px] min-w-0 flex-1 resize-none rounded-[20px] border-[0.5px] border-[#D4AF37]/20 bg-[#030604]/60 px-4 py-3 text-[14px] text-[#E5E4E2] outline-none placeholder:text-white/20 focus:border-[#D4AF37]/50 focus:bg-[#030604]/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] transition-all duration-300 disabled:opacity-50"
         />
+        <label
+          className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-[18px] transition-all duration-300 border bg-black/40 text-white/60 border-white/10 hover:border-emerald-400/40 hover:text-white hover:bg-black/60 cursor-pointer"
+          title="Upload Document (PDF, Word, TXT)"
+        >
+          <input 
+            type="file" 
+            accept=".pdf,.doc,.docx,.txt"
+            onChange={handleFileChange}
+            className="hidden" 
+            disabled={isUploadingFile || isLoading || disabled}
+          />
+          <Paperclip size={18} />
+        </label>
         <button
           type="button"
           onClick={isListening ? stopListening : handleStartListening}
