@@ -86,8 +86,18 @@ export async function POST(request: Request) {
     // 3. Extract Text
     let extractedText = "";
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-      const pdfData = await pdf(buffer);
-      extractedText = pdfData.text;
+      try {
+        console.log("Starting PDF parse for:", file.name);
+        const pdfPromise = pdf(buffer);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("PDF parsing timed out")), 10000));
+        
+        const pdfData = await Promise.race([pdfPromise, timeoutPromise]) as any;
+        extractedText = pdfData.text;
+        console.log("PDF parsed successfully. Length:", extractedText.length);
+      } catch (err: any) {
+        console.error("PDF extraction failed:", err);
+        throw new Error(`Failed to extract text from PDF: ${err.message}`);
+      }
     } else if (
       file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       file.name.endsWith(".docx")
@@ -106,7 +116,7 @@ export async function POST(request: Request) {
     const chunks = splitTextIntoChunks(extractedText);
     
     // Process embeddings in smaller batches to avoid HF limits
-    const batchSize = 2; // Reduced batch size to prevent HTTP 413 or timeout
+    const batchSize = 20; // Increased to 20 to avoid Vercel timeouts
     const documentChunks = [];
     
     for (let i = 0; i < chunks.length; i += batchSize) {
@@ -114,7 +124,7 @@ export async function POST(request: Request) {
       
       let embeddings: number[][] = [];
       let retries = 3;
-      let delay = 2000; // Start with 2s delay
+      let delay = 1000;
       
       while (retries > 0) {
         try {
