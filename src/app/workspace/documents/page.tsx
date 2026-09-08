@@ -107,97 +107,12 @@ export default function DocumentsPage() {
     []
   );
 
-  const extractDocument = useCallback(async (document: UploadedDocument) => {
-    setProcessingIds((current) => new Set(current).add(document.id));
-    applyExtraction(document.id, {
-      id: `processing-${document.id}`,
-      document_id: document.id,
-      extracted_text: "",
-      page_count: 0,
-      extraction_status: "processing",
-      created_at: new Date().toISOString(),
-    });
-
-    try {
-      const response = await fetch("/api/documents/extract", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          documentId: document.id,
-          storagePath: document.storage_path,
-          fileType: getFileExtensionFromName(document.name),
-        }),
-      });
-      const payload = await response.json();
-
-      if (!response.ok || !payload.extraction) {
-        throw new Error(payload.error || "Document extraction failed.");
-      }
-
-      setDocuments((current) =>
-        current.map((currentDocument) =>
-          currentDocument.id === document.id
-            ? {
-                ...currentDocument,
-                chunk_count: payload.chunk_count ?? currentDocument.chunk_count ?? 0,
-                extraction: payload.extraction,
-              }
-            : currentDocument
-        )
-      );
-
-      addToast(
-        `"${document.name}" is extracted, chunked, and embedded.`,
-        "success",
-        4000
-      );
-    } catch (extractError) {
-      const message =
-        extractError instanceof Error
-          ? extractError.message
-          : "Document extraction failed.";
-
-      applyExtraction(document.id, {
-        id: `failed-${document.id}`,
-        document_id: document.id,
-        extracted_text: message,
-        page_count: 0,
-        extraction_status: "failed",
-        created_at: new Date().toISOString(),
-      });
-      setError(message);
-      addToast(message, "error");
-    } finally {
-      setProcessingIds((current) => {
-        const next = new Set(current);
-        next.delete(document.id);
-        return next;
-      });
-    }
-  }, [addToast, applyExtraction]);
-
   const handleUploaded = useCallback((document: UploadedDocument) => {
-    const processingDocument: UploadedDocument = {
-      ...document,
-      extraction: {
-        id: `processing-${document.id}`,
-        document_id: document.id,
-        extracted_text: "",
-        page_count: 0,
-        extraction_status: "processing",
-        created_at: new Date().toISOString(),
-      },
-    };
-
     setDocuments((current) => [
-      processingDocument,
+      document,
       ...current.filter((item) => item.id !== document.id),
     ]);
-
-    void extractDocument(document);
-  }, [extractDocument]);
+  }, []);
 
   const handleAnalyze = useCallback((document: UploadedDocument) => {
     setAnalysisDocument(document);
