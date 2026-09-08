@@ -31,7 +31,10 @@ export async function GET(req: Request) {
     // Since RLS is probably enabled, they'll only see their own docs (if storage_path contains their UUID or if we set up RLS on documents_metadata properly)
     const { data: documents, error } = await supabase
       .from("documents_metadata")
-      .select("*")
+      .select(`
+        *,
+        document_chunks ( chunk_text )
+      `)
       .order("uploaded_at", { ascending: false });
 
     if (error) {
@@ -39,17 +42,22 @@ export async function GET(req: Request) {
     }
 
     // Map to expected format
-    const mappedDocuments = documents?.map(doc => ({
-      id: doc.id,
-      name: doc.name,
-      sizeBytes: doc.size,
-      status: "uploaded",
-      storage_path: doc.storage_path,
-      extraction: {
-        extraction_status: "completed",
-      },
-      uploadedAt: doc.uploaded_at,
-    })) || [];
+    const mappedDocuments = documents?.map((doc: any) => {
+      const chunks = doc.document_chunks || [];
+      return {
+        id: doc.id,
+        name: doc.name,
+        sizeBytes: doc.size,
+        status: "uploaded",
+        storage_path: doc.storage_path,
+        chunk_count: chunks.length,
+        extraction: {
+          extraction_status: chunks.length > 0 ? "completed" : "pending",
+          extracted_text: chunks[0]?.chunk_text || "",
+        },
+        uploadedAt: doc.uploaded_at,
+      };
+    }) || [];
 
     return NextResponse.json({ documents: mappedDocuments });
   } catch (error: any) {
