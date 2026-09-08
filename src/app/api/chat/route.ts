@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGroq } from "@ai-sdk/groq";
 import { streamText } from "ai";
 import { HfInference } from "@huggingface/inference";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
@@ -6,8 +6,7 @@ import { cookies } from "next/headers";
 
 export const maxDuration = 60; // Max duration for edge/serverless functions
 
-const groq = createOpenAI({
-  baseURL: "https://api.groq.com/openai/v1",
+const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
@@ -37,7 +36,7 @@ export async function POST(req: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     // Allow guest mode - do not block on missing session
 
-    const { message, analyticsContext, retrievalContext, model = "openai/gpt-oss-120b" } = await req.json();
+    const { message, analyticsContext, retrievalContext, model = "qwen/qwen3.6-27b" } = await req.json();
 
     let systemPrompt = `You are AetherQ Intelligence, an elite enterprise AI assistant.
 You provide highly structured, insightful, and concise responses.

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGroq } from "@ai-sdk/groq";
 import { generateText } from "ai";
 import { Client } from "pg";
 
-const groq = createOpenAI({
-  baseURL: "https://api.groq.com/openai/v1",
+export const maxDuration = 60; // Max duration for edge/serverless functions
+
+const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
@@ -60,7 +61,7 @@ ${schemaStr}
 Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any explanation. Just the SQL.`;
 
     const { text: generatedSql } = await generateText({
-      model: groq("openai/gpt-oss-120b"),
+      model: groq("qwen/qwen3.6-27b"),
       system: systemPrompt,
       prompt: query,
     });

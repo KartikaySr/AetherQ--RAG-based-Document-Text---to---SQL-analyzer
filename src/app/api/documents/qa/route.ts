@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGroq } from "@ai-sdk/groq";
 import { streamText } from "ai";
 import { HfInference } from "@huggingface/inference";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
@@ -6,8 +6,7 @@ import { cookies } from "next/headers";
 
 export const maxDuration = 60;
 
-const groq = createOpenAI({
-  baseURL: "https://api.groq.com/openai/v1",
+const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
@@ -37,7 +36,7 @@ export async function POST(req: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     // Allow guest mode
 
-    const { query, documentId, matchCount = 8, model = "openai/gpt-oss-120b" } = await req.json();
+    const { query, documentId, matchCount = 8, model = "qwen/qwen3.6-27b" } = await req.json();
 
     if (!query || !documentId) {
       return new Response("Missing query or documentId", { status: 400 });
