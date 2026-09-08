@@ -24,6 +24,7 @@ CREATE OR REPLACE FUNCTION match_document_chunks (
 ) RETURNS TABLE (
   id uuid,
   document_id uuid,
+  document_name text,
   chunk_text text,
   similarity float
 )
@@ -34,9 +35,11 @@ BEGIN
   SELECT
     dc.id,
     dc.document_id,
+    dm.name AS document_name,
     dc.chunk_text,
     1 - (dc.embedding <=> query_embedding) AS similarity
   FROM document_chunks dc
+  JOIN documents_metadata dm ON dm.id = dc.document_id
   WHERE
     (filter_document_id IS NULL OR dc.document_id = filter_document_id)
     AND (filter_user_id IS NULL OR dc.user_id = filter_user_id)

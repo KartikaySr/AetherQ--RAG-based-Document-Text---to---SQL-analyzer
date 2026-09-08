@@ -49,8 +49,8 @@ export async function POST(req: Request) {
     });
 
     // 2. Retrieve relevant chunks from the specific document
-    const { data: chunks, error } = await supabase.rpc("match_document_chunks_by_document", {
-      document_id: documentId,
+    const { data: chunks, error } = await supabase.rpc("match_document_chunks", {
+      filter_document_id: documentId,
       query_embedding: queryEmbedding as number[],
       match_count: matchCount,
     });
