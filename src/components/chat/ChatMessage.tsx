@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useState } from "react";
+import { motion } from "framer-motion";
 import { DataTable } from "@/components/DataTable";
 import { CitationDisplay } from "./CitationDisplay";
 import { AutoChart } from "./AutoChart";
@@ -71,7 +72,10 @@ function ChatMessageInner({ message, onRegenerate }: ChatMessageProps) {
     isStreaming && !message.content.trim().length;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       className={`flex gap-4 group ${isUser ? "justify-end" : "justify-start"}`}
     >
       {!isUser && (
@@ -175,7 +179,7 @@ function ChatMessageInner({ message, onRegenerate }: ChatMessageProps) {
           (message.sqlResult?.sql ? `\n\n\`\`\`sql\n${message.sqlResult.sql}\n\`\`\`` : "")
         }
       />
-    </div>
+    </motion.div>
   );
 }
 

@@ -82,22 +82,31 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
         ),
 
         // Code blocks
-        code: ({ inline, children, className }: MarkdownCodeProps) => {
-          const language = className?.replace("language-", "") || "text";
+        code: (props: any) => {
+          const { children, className, node, ...rest } = props;
+          const match = /language-(\w+)/.exec(className || "");
+          
+          // In react-markdown v9+, inline is no longer passed as a boolean.
+          // We check if there's no language match and no newlines to assume it's inline.
+          const isInline = !match && !String(children).includes('\n');
 
-          if (inline) {
+          if (isInline) {
             return (
-              <code className="rounded bg-white/10 px-2 py-1 font-mono text-sm text-emerald-300">
+              <code className={`rounded bg-white/10 px-2 py-1 font-mono text-sm text-emerald-300 ${className || ''}`} {...rest}>
                 {children}
               </code>
             );
           }
 
+          const language = match ? match[1] : "text";
+
           return (
             <div className="mb-4 overflow-x-auto rounded-xl border border-white/10 bg-black/50">
               <SyntaxHighlighter
+                {...rest}
                 language={language}
                 style={atomDark}
+                PreTag="div"
                 customStyle={{
                   padding: "1rem",
                   margin: 0,

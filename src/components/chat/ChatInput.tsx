@@ -10,9 +10,11 @@ import {
   Mic,
   Image as ImageIcon,
   X,
-  Paperclip
+  Paperclip,
+  DatabaseZap
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { UploadedDocument } from "@/lib/documentTypes";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
@@ -210,12 +212,44 @@ export function ChatInput({
             </button>
           </div>
         )}
-        {isUploadingFile && (
-          <div className="absolute left-3 top-[-30px] flex items-center gap-2 bg-emerald-500/10 text-emerald-300 text-xs rounded-full px-3 py-1 border border-emerald-500/20 z-10">
-            <Loader2 className="animate-spin" size={12} />
-            Uploading document...
-          </div>
-        )}
+        
+        <AnimatePresence>
+          {isUploadingFile && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="absolute left-0 right-0 top-[-50px] flex items-center justify-between gap-3 bg-black/80 backdrop-blur-xl border border-emerald-500/30 text-emerald-300 text-xs rounded-2xl px-4 py-2.5 z-20 shadow-[0_4px_20px_rgba(16,185,129,0.2)]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative flex size-8 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
+                  <DatabaseZap className="size-4 animate-pulse text-emerald-400" />
+                  <motion.div 
+                    animate={{ rotate: 360 }} 
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 rounded-full border-t-2 border-emerald-400 opacity-50"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold tracking-wide text-emerald-400">Ingesting into Enterprise Vault...</span>
+                  <span className="text-[10px] text-emerald-200/50">Parsing semantics and generating embeddings</span>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ scaleY: [1, 2, 1], opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
+                    className="w-1 h-3 bg-emerald-400 rounded-full"
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}

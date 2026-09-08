@@ -687,12 +687,6 @@ function ChatWorkspace() {
       setDocuments(prev => [document, ...prev]);
       setSelectedDocumentId(document.id);
       
-      fetch("/api/documents/extract", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentId: document.id }),
-      }).catch(console.error);
-      
       setMode("documents");
       addToast("Document uploaded! It is now being processed for semantic search.", "success");
     } catch (error) {

@@ -145,8 +145,8 @@ export default function DocumentCard({
         </h3>
 
         <div className="mt-4 space-y-2 text-sm text-white/45">
-          <p>{format(new Date(document.uploaded_at), "MMM d, yyyy · h:mm a")}</p>
-          <p>{formatBytes(document.size)}</p>
+          <p>{format(new Date((document as any).uploaded_at || (document as any).uploadedAt || new Date()), "MMM d, yyyy · h:mm a")}</p>
+          <p>{formatBytes((document as any).size || (document as any).sizeBytes || 0)}</p>
           {document.extraction?.page_count ? (
             <p>{document.extraction.page_count} pages extracted</p>
           ) : null}
