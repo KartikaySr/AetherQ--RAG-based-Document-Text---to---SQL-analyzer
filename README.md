@@ -1,60 +1,85 @@
 # AetherQ
 
-Enterprise AI workspace: **Supabase auth + RLS**, **Groq** LLM, **Hugging Face** embeddings (384-dim), **Postgres** analytics, document vault and chat.
+AetherQ is an Enterprise AI workspace combining the power of Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and advanced data analytics. Designed for scale and security, it provides a centralized platform for document intelligence, natural language querying (Text-to-SQL), and secure team collaboration.
 
-## Quick start
+## 🌟 Key Features
 
-1. Copy environment template and fill secrets:
+- **Enterprise Document Vault**: Securely store, process, and retrieve documents.
+- **Advanced RAG Capabilities**: Hugging Face sentence transformers (384-dimensional embeddings) paired with Supabase Vector for highly accurate semantic search.
+- **Lightning-Fast AI Inference**: Integrated with Groq's LPU inference engine for rapid natural language processing and real-time chat capabilities.
+- **Text-to-SQL Analytics**: Translate natural language questions into complex PostgreSQL queries for deep, actionable data insights.
+- **Multi-tenant Security**: Built-in Row Level Security (RLS) via Supabase ensures strict data isolation across users and workspaces.
+- **Voice-Enabled Interface**: Interactive and hands-free operations using integrated voice recognition hooks.
 
-   ```bash
-   cp .env.example .env.local
-   ```
+## 🛠 Tech Stack
 
-2. Install and run:
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4, Framer Motion
+- **Backend**: Next.js API Routes, Supabase (PostgreSQL, Storage, Auth)
+- **AI/ML Infrastructure**:
+  - LLM Inference: [Groq](https://groq.com/)
+  - Embeddings: [Hugging Face](https://huggingface.co/)
+  - Vector Store: `pgvector`
+- **State Management**: Zustand
+- **Document Processing**: pdf-parse, mammoth (for rich text extraction)
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+## 🚀 Getting Started
 
-3. Open [http://localhost:3000](http://localhost:3000), sign in, then use **Workspace** routes under `/workspace`.
+### Prerequisites
 
-4. **Health check** (after env is set): [http://localhost:3000/api/health](http://localhost:3000/api/health) — JSON shows which subsystems have keys configured (no secret values).
+Ensure you have the following installed on your local development machine:
+- Node.js (v18 or higher)
+- npm or pnpm
+- A [Supabase](https://supabase.com/) Project
+- API Keys for Groq and Hugging Face
 
-## Configuration
+### 1. Environment Setup
 
-All variables are documented in **`.env.example`**. Minimum for a full local demo:
+Copy the example environment variables file and populate it with your secure credentials. 
+> **Important**: Never commit your `.env.local` file to version control. Keep your keys strictly confidential.
 
-| Area | Variables |
-|------|-----------|
-| Auth & data plane | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
-| Chat / SQL / QA | `GROQ_API_KEY` |
-| Search & indexing | `HUGGINGFACE_API_KEY` |
-| Analytics dashboard & Text-to-SQL | `DATABASE_URL` (same or separate Postgres with enterprise schema) |
-| SQL audit rows in Supabase | `SUPABASE_SERVICE_ROLE_KEY` (optional) |
+```bash
+cp .env.example .env.local
+```
 
-Optional: `NEXT_PUBLIC_SITE_URL`, `GROQ_CHAT_MODEL`, `HUGGINGFACE_EMBEDDING_URL`, `DATABASE_SSL_DISABLE`, `DATABASE_POOL_MAX`, upload size vars.
+The minimum required variables to run the application locally include:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `GROQ_API_KEY`
+- `HUGGINGFACE_API_KEY`
+- `DATABASE_URL`
 
-## Database migrations (Supabase SQL editor)
+### 2. Database Migrations
 
-Run SQL files **in order** on your Supabase project (Extensions + SQL). Adjust if a table already exists.
+Set up your Supabase database by running the following SQL scripts (located in the `/database` directory) in sequential order via the Supabase SQL Editor:
 
-1. `supabase-documents-schema.sql` — documents metadata + storage-oriented RLS (superseded later by isolation script).
-2. `supabase-document-extractions-schema.sql` — extraction status.
-3. `supabase-vector-schema.sql` — `vector` extension + `document_chunks` (384-dim).
-4. `supabase-conversations-schema.sql` — conversations + messages + RLS.
-5. `supabase-enterprise-schema.sql` — warehouse tables + `query_audit_logs`.
-6. `supabase-add-user-isolation.sql` — **critical**: per-user RLS, `user_id` columns, `match_document_chunks_for_user`, storage policies.
-7. `supabase-messages-delete-policy.sql` — allows replacing message rows when syncing chat history.
+1. `supabase-documents-schema.sql` - Core document metadata tables.
+2. `supabase-document-extractions-schema.sql` - Document processing statuses.
+3. `supabase-vector-schema.sql` - Enables the `vector` extension and creates the `document_chunks` table for embeddings.
+4. `supabase-conversations-schema.sql` - Chat and messaging schema.
+5. `supabase-enterprise-schema.sql` - Analytical warehouse and comprehensive audit logs.
+6. `supabase-add-user-isolation.sql` - **CRITICAL**: Enforces per-user RLS, linking records to `user_id`, updating storage policies, and vector match functions.
+7. `supabase-messages-delete-policy.sql` - Policies allowing message state synchronization.
 
-Create a **Storage** bucket named `documents` (or align app + policies with your bucket name). Configure **Auth** redirect URLs for your deployed origin (e.g. `https://app.example.com/auth/callback`).
+Additionally, create a Supabase Storage bucket named `documents` and configure your Auth redirect URLs to match your application's origin (e.g. `http://localhost:3000/auth/callback`).
 
-## Scripts
+### 3. Installation & Local Development
 
-- `npm run dev` — development
-- `npm run build` / `npm run start` — production
-- `npm run lint` — ESLint
+Install the project dependencies and start the development server:
 
-## Deploy
+```bash
+npm install
+npm run dev
+```
 
-Use the structured checklist in the project maintainer / Cursor handoff: set env on the host (e.g. Vercel), run migrations on Supabase, set `NEXT_PUBLIC_SITE_URL` and auth redirect URLs to that host, then `npm run build` and deploy.
+The application will be available at [http://localhost:3000](http://localhost:3000). You can check system health at `/api/health`.
+
+## 🛡 Security & Privacy
+
+AetherQ is built with enterprise-grade security principles:
+- **Zero Data Leakage Environment**: API keys and service roles (`SUPABASE_SERVICE_ROLE_KEY`) remain strictly server-side. The frontend only communicates using safe anonymous keys and user-specific JWTs.
+- **Row Level Security (RLS)**: PostgreSQL policies isolate user data directly at the database level, ensuring that users can only access their own workspaces and documents.
+- **Comprehensive Audit Logging**: Sensitive enterprise actions, including generated SQL queries, are logged for compliance and security auditing.
+
+## 📜 License
+
+Copyright © AetherQ. All rights reserved.
