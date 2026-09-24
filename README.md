@@ -1,85 +1,124 @@
-# AetherQ
+<div align="center">
 
-AetherQ is an Enterprise AI workspace combining the power of Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and advanced data analytics. Designed for scale and security, it provides a centralized platform for document intelligence, natural language querying (Text-to-SQL), and secure team collaboration.
+# 🌌 AetherQ
+**Enterprise AI-Powered Document Intelligence & Data Analytics Platform**
 
-## 🌟 Key Features
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://aether-q-rag-based-document-text-to.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Groq](https://img.shields.io/badge/Groq-LPU_Inference-F55036?style=for-the-badge)](https://groq.com/)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-- **Enterprise Document Vault**: Securely store, process, and retrieve documents.
-- **Advanced RAG Capabilities**: Hugging Face sentence transformers (384-dimensional embeddings) paired with Supabase Vector for highly accurate semantic search.
-- **Lightning-Fast AI Inference**: Integrated with Groq's LPU inference engine for rapid natural language processing and real-time chat capabilities.
-- **Text-to-SQL Analytics**: Translate natural language questions into complex PostgreSQL queries for deep, actionable data insights.
-- **Multi-tenant Security**: Built-in Row Level Security (RLS) via Supabase ensures strict data isolation across users and workspaces.
-- **Voice-Enabled Interface**: Interactive and hands-free operations using integrated voice recognition hooks.
+**[🚀 LIVE DEMO: https://aether-q-rag-based-document-text-to.vercel.app/](https://aether-q-rag-based-document-text-to.vercel.app/)**
+
+</div>
+
+---
+
+## 📖 Overview
+
+**AetherQ** is a highly scalable, full-stack enterprise workspace that brings the power of **Large Language Models (LLMs)**, **Retrieval-Augmented Generation (RAG)**, and **Text-to-SQL Analytics** into a secure, unified environment. 
+
+Engineered for absolute performance and security, AetherQ allows enterprises to securely upload documents, query their internal data warehouses via natural language, and collaborate in an isolated, multi-tenant environment.
+
+## ✨ Key Features
+
+- 🧠 **Conversational Intelligence**: Real-time chat powered by Groq's blazing-fast LPU inference engine, enabling ultra-low latency responses.
+- 📚 **Advanced RAG Document Vault**: Securely process PDFs and Docs. Leverages `pgvector` and Hugging Face sentence transformers (384-dimensional) for extremely accurate semantic similarity searches.
+- 📊 **Autonomous Data Analytics (Text-to-SQL)**: Translate complex natural language business questions into precise PostgreSQL queries, rendering automatic charts and insights.
+- 🔒 **Enterprise-Grade Security**: Built on Supabase with strict Row Level Security (RLS) ensuring total data isolation per user/tenant. API keys remain strictly server-side.
+- ⚡ **Modern UI/UX**: Crafted with React 19, Tailwind CSS v4, and Framer Motion for a luxurious, responsive, and tactile user experience.
+
+---
+
+## 🏗 System Architecture & Folder Structure
+
+This repository is built on a **unified Next.js 15 App Router** architecture, meaning both the high-performance client and the secure server backend reside seamlessly in the same repository.
+
+```bash
+aetherq/
+├── src/
+│   ├── app/                 # Frontend UI, Layouts, and React Client Components
+│   ├── app/api/             # Backend Node.js API Routes (Serverless Functions)
+│   ├── components/          # Reusable UI elements, Charts, and Chat Modals
+│   ├── lib/                 # Core utilities, Supabase clients, and Model configurations
+│   └── store/               # Global state management via Zustand
+├── database/                # PostgreSQL schema definitions and migration scripts
+├── public/                  # Static assets
+└── .github/workflows/       # CI/CD pipelines (Automated Linting)
+```
+
+> **Note on Environment Variables**: Because this is a unified Next.js repository, a single `.env.local` file at the root correctly provisions both the frontend (via `NEXT_PUBLIC_` prefixes) and the backend serverless routes.
+
+---
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4, Framer Motion
-- **Backend**: Next.js API Routes, Supabase (PostgreSQL, Storage, Auth)
-- **AI/ML Infrastructure**:
-  - LLM Inference: [Groq](https://groq.com/)
-  - Embeddings: [Hugging Face](https://huggingface.co/)
-  - Vector Store: `pgvector`
-- **State Management**: Zustand
-- **Document Processing**: pdf-parse, mammoth (for rich text extraction)
+| Domain | Technology |
+| :--- | :--- |
+| **Frontend Framework** | React 19, Next.js 15 (App Router) |
+| **Styling & Animation** | Tailwind CSS v4, Framer Motion, Recharts |
+| **Backend & APIs** | Next.js API Routes (Node.js edge/serverless) |
+| **Database & Auth** | Supabase (PostgreSQL), Supabase Auth, `pgvector` |
+| **AI Inference** | Groq (`qwen/qwen3.6-27b` & Llama-3 models) |
+| **Embeddings (RAG)** | Hugging Face (`all-MiniLM-L6-v2`) |
+| **State Management** | Zustand |
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
+## 🚀 Local Setup Instructions
 
-Ensure you have the following installed on your local development machine:
-- Node.js (v18 or higher)
-- npm or pnpm
-- A [Supabase](https://supabase.com/) Project
-- API Keys for Groq and Hugging Face
+Follow these instructions to run the AetherQ platform on your local machine.
 
-### 1. Environment Setup
+### 1. Clone the Repository
+```bash
+git clone https://github.com/KartikaySr/AetherQ--RAG-based-Document-Text---to---SQL-analyzer.git
+cd AetherQ--RAG-based-Document-Text---to---SQL-analyzer
+```
 
-Copy the example environment variables file and populate it with your secure credentials. 
-> **Important**: Never commit your `.env.local` file to version control. Keep your keys strictly confidential.
+### 2. Install Dependencies
+Ensure you have Node.js (v18+) installed.
+```bash
+npm install
+```
 
+### 3. Configure Environment Variables
+Copy the provided example environment file to create your local configuration:
 ```bash
 cp .env.example .env.local
 ```
+*Open `.env.local` and populate it with your secure API credentials (Supabase URL/Keys, Groq API Key, Hugging Face API Key). Never commit your `.env.local` file.*
 
-The minimum required variables to run the application locally include:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `GROQ_API_KEY`
-- `HUGGINGFACE_API_KEY`
-- `DATABASE_URL`
+### 4. Provision the Database
+Navigate to your Supabase project's SQL Editor and sequentially run the migration scripts located in the `database/` folder:
+1. `supabase-documents-schema.sql`
+2. `supabase-document-extractions-schema.sql`
+3. `supabase-vector-schema.sql` (Enables `pgvector`)
+4. `supabase-conversations-schema.sql`
+5. `supabase-enterprise-schema.sql`
+6. `supabase-add-user-isolation.sql`
+7. `supabase-messages-delete-policy.sql`
 
-### 2. Database Migrations
+*Also, ensure you create a Supabase Storage bucket named `documents`.*
 
-Set up your Supabase database by running the following SQL scripts (located in the `/database` directory) in sequential order via the Supabase SQL Editor:
-
-1. `supabase-documents-schema.sql` - Core document metadata tables.
-2. `supabase-document-extractions-schema.sql` - Document processing statuses.
-3. `supabase-vector-schema.sql` - Enables the `vector` extension and creates the `document_chunks` table for embeddings.
-4. `supabase-conversations-schema.sql` - Chat and messaging schema.
-5. `supabase-enterprise-schema.sql` - Analytical warehouse and comprehensive audit logs.
-6. `supabase-add-user-isolation.sql` - **CRITICAL**: Enforces per-user RLS, linking records to `user_id`, updating storage policies, and vector match functions.
-7. `supabase-messages-delete-policy.sql` - Policies allowing message state synchronization.
-
-Additionally, create a Supabase Storage bucket named `documents` and configure your Auth redirect URLs to match your application's origin (e.g. `http://localhost:3000/auth/callback`).
-
-### 3. Installation & Local Development
-
-Install the project dependencies and start the development server:
-
+### 5. Launch the Application
+Start the development server:
 ```bash
-npm install
 npm run dev
 ```
+The application will be running at [http://localhost:3000](http://localhost:3000).
 
-The application will be available at [http://localhost:3000](http://localhost:3000). You can check system health at `/api/health`.
+---
 
-## 🛡 Security & Privacy
+## 👤 Author
 
-AetherQ is built with enterprise-grade security principles:
-- **Zero Data Leakage Environment**: API keys and service roles (`SUPABASE_SERVICE_ROLE_KEY`) remain strictly server-side. The frontend only communicates using safe anonymous keys and user-specific JWTs.
-- **Row Level Security (RLS)**: PostgreSQL policies isolate user data directly at the database level, ensuring that users can only access their own workspaces and documents.
-- **Comprehensive Audit Logging**: Sensitive enterprise actions, including generated SQL queries, are logged for compliance and security auditing.
+**Kartikay Srivastava**
+*Senior Full-Stack & AI Engineer*
 
-## 📜 License
+Feel free to reach out or open an issue if you have any questions about the architecture or implementation details. 
 
-Copyright © AetherQ. All rights reserved.
+<div align="center">
+  <br />
+  <i>Copyright © 2026 Kartikay Srivastava. All rights reserved.</i>
+</div>

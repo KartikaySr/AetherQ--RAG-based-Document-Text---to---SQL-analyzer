@@ -1,3 +1,8 @@
+/**
+ * AetherQ - AI-Powered Document Intelligence Platform
+ * Author: Kartikay Srivastava
+ * Copyright © 2026. All rights reserved.
+ */
 "use client";
 
 import { motion, Variants } from "framer-motion";

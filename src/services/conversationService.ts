@@ -242,7 +242,6 @@ export const conversationService = {
         };
       }
 
-      console.log("=== CREATE CONVERSATION START ===");
       const authResponse = await supabase.auth.getSession();
       const session = authResponse.data.session;
 

@@ -87,13 +87,11 @@ export async function POST(request: Request) {
     let extractedText = "";
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
       try {
-        console.log("Starting PDF parse for:", file.name);
         const pdfPromise = pdf(buffer);
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("PDF parsing timed out")), 10000));
         
         const pdfData = await Promise.race([pdfPromise, timeoutPromise]) as any;
         extractedText = pdfData.text;
-        console.log("PDF parsed successfully. Length:", extractedText.length);
       } catch (err: any) {
         console.error("PDF extraction failed:", err);
         throw new Error(`Failed to extract text from PDF: ${err.message}`);
