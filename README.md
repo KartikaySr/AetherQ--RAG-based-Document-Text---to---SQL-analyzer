@@ -32,24 +32,72 @@ Engineered for absolute performance and security, AetherQ allows enterprises to 
 
 ---
 
-## 🏗 System Architecture & Folder Structure
+## 🏗 Comprehensive System Architecture Walkthrough
 
-This repository is built on a **unified Next.js 15 App Router** architecture, meaning both the high-performance client and the secure server backend reside seamlessly in the same repository.
+AetherQ is built on a modern, unified full-stack architecture leveraging Next.js 15 (App Router). This design allows the high-performance React client and the secure Node.js backend to coexist in a single repository, ensuring tight type-safety, rapid development, and seamless deployment.
+
+### 🧩 High-Level Data Flow
+
+1.  **Client Layer (Next.js / React 19):** User interactions (chat messages, file uploads, SQL queries) are captured by React components. State is managed globally using **Zustand** for predictable updates.
+2.  **API Layer (Next.js Serverless Routes):** Requests are securely routed to `/api/*` endpoints. This acts as an orchestration layer, interfacing with our AI providers (Groq, HuggingFace) and our database (Supabase).
+3.  **Data & Vector Store (Supabase):** PostgreSQL handles relational data (users, messages, schemas) while `pgvector` stores and searches high-dimensional embeddings generated from uploaded documents for RAG.
+4.  **AI Inference (Groq & HuggingFace):** Groq's LPU provides ultra-fast LLM inference for text generation and SQL translation, while HuggingFace sentence transformers handle semantic embeddings.
+
+### 📂 Detailed Directory Structure
 
 ```bash
 aetherq/
 ├── src/
-│   ├── app/                 # Frontend UI, Layouts, and React Client Components
-│   ├── app/api/             # Backend Node.js API Routes (Serverless Functions)
-│   ├── components/          # Reusable UI elements, Charts, and Chat Modals
-│   ├── lib/                 # Core utilities, Supabase clients, and Model configurations
-│   └── store/               # Global state management via Zustand
-├── database/                # PostgreSQL schema definitions and migration scripts
-├── public/                  # Static assets
-└── .github/workflows/       # CI/CD pipelines (Automated Linting)
+│   ├── app/                    # 🚀 Next.js App Router root
+│   │   ├── (auth)/             # Authentication routes (login, signup)
+│   │   ├── api/                # ⚡ Serverless API endpoints (Backend)
+│   │   │   ├── chat/           # Handles LLM conversations and Groq integration
+│   │   │   ├── upload/         # Document parsing and chunking logic
+│   │   │   └── query/          # Text-to-SQL processing and execution
+│   │   ├── workspace/          # Core authenticated app interface
+│   │   └── layout.tsx          # Root layout including global providers
+│   ├── components/             # 🧩 Reusable React UI Components
+│   │   ├── ui/                 # Base components (buttons, inputs) - Tailwind/Framer Motion
+│   │   ├── chat/               # Chat interface, message bubbles, input areas
+│   │   └── data/               # Data visualization (Recharts, tables)
+│   ├── hooks/                  # 🪝 Custom React hooks for localized logic
+│   ├── lib/                    # 🛠 Core utility functions & Configurations
+│   │   ├── supabase/           # Supabase client instantiation (server & browser)
+│   │   ├── ai/                 # Groq SDK and HuggingFace inference setup
+│   │   └── utils.ts            # General helper functions (formatting, validation)
+│   ├── providers/              # 🌐 React Context Providers (Auth, Theme)
+│   ├── services/               # ⚙️ Business logic and external API wrappers
+│   ├── store/                  # 📦 Global state management (Zustand slices)
+│   └── types/                  # 🏷 TypeScript interfaces and type definitions
+├── database/                   # 🗄 PostgreSQL schema definitions & migrations
+├── public/                     # 🖼 Static assets (images, fonts, icons)
+├── .env.local                  # 🔐 Environment variables (API keys, Supabase URLs)
+├── tailwind.config.ts          # 🎨 Tailwind CSS v4 styling system configuration
+└── next.config.ts              # ⚙️ Next.js framework configuration
 ```
 
-> **Note on Environment Variables**: Because this is a unified Next.js repository, a single `.env.local` file at the root correctly provisions both the frontend (via `NEXT_PUBLIC_` prefixes) and the backend serverless routes.
+### 🧠 Deep Dive: RAG (Retrieval-Augmented Generation) Pipeline
+
+1.  **Ingestion:** When a user uploads a document (PDF/Doc), it is sent to a secure Next.js API route.
+2.  **Processing:** The document is parsed and split into manageable semantic chunks using a text splitter.
+3.  **Embedding:** Each chunk is passed to the Hugging Face inference API (`all-MiniLM-L6-v2`) to generate a 384-dimensional vector embedding.
+4.  **Storage:** The original text and its vector embedding are stored in Supabase using the `pgvector` extension. Row Level Security (RLS) ensures chunks are tied to the specific user/tenant.
+5.  **Retrieval:** When a user asks a question, the query is embedded into a vector. A cosine similarity search (`pgvector`) retrieves the most relevant document chunks.
+6.  **Generation:** The retrieved context is injected into the prompt alongside the user's query and sent to Groq for ultra-low latency answer generation.
+
+### 📊 Deep Dive: Text-to-SQL Engine
+
+1.  **Intent Parsing:** User query is evaluated by an LLM to determine if it requires database access.
+2.  **Schema Injection:** The relevant database schema is fetched and injected into the LLM context.
+3.  **Query Generation:** The LLM translates the natural language into a precise, read-only PostgreSQL query.
+4.  **Execution & Validation:** The query is executed against the Supabase database. Strict permissions ensure only authorized data is queried.
+5.  **Visualization:** Results are returned to the frontend and automatically rendered into tables or charts (via Recharts).
+
+### 🔒 Security Architecture
+
+*   **Row Level Security (RLS):** Implemented at the database level in Supabase. Every query automatically filters data based on the authenticated user's ID, preventing horizontal privilege escalation.
+*   **Server-Side Execution:** All sensitive operations (AI API calls, database mutations) occur in secure server environments (Next.js API routes), keeping API keys completely hidden from the browser.
+*   **Unified Environment Variables:** A single `.env.local` file provisions both environments. Variables prefixed with `NEXT_PUBLIC_` are safely exposed to the browser, while all others remain strictly server-side.
 
 ---
 
