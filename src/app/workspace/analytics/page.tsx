@@ -117,7 +117,6 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     // Initial dashboard hydrate: async fetch unavoidable on mount for live KPI tiles.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch bootstraps read-only KPIs
     void load();
   }, [load]);
 

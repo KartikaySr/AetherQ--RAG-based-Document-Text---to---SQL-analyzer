@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     // Attempt to connect to PG and fetch schema, or use a default one
-    let schemaStr = `
+    const schemaStr = `
 Table: public.employees
 Columns: id (uuid), name (text), department (text), salary (numeric), hire_date (date)
 
@@ -61,7 +61,7 @@ ${schemaStr}
 Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any explanation. Just the SQL.`;
 
     const { text: generatedSql } = await generateText({
-      model: groq("qwen/qwen3.6-27b"),
+      model: groq("llama3-70b-8192"),
       system: systemPrompt,
       prompt: query,
     });

@@ -107,30 +107,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInAsGuest = async () => {
     const client = supabaseRef.current ?? createClient();
     
+    const guestEmail = process.env.NEXT_PUBLIC_GUEST_EMAIL || "guest@aetherq.com";
+    const guestPassword = process.env.NEXT_PUBLIC_GUEST_PASSWORD || "guest123";
+
     try {
-      // 1. First, try the standard Supabase anonymous sign-in
-      const { error } = await client.auth.signInAnonymously();
-      if (error) throw error;
-    } catch (err: any) {
-      // 2. Fallback: If anonymous sign-ins are disabled, use our custom guest API
-      const res = await fetch("/api/auth/guest", { method: "POST" });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create guest account");
+      const { error } = await client.auth.signInWithPassword({
+        email: guestEmail,
+        password: guestPassword,
+      });
+
+      if (error) {
+        throw error;
       }
       
-      // 3. Sign in with the newly created guest credentials
-      const { error: signInError } = await client.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      });
-      if (signInError) throw signInError;
+      // Set custom guest cookies for middleware detection
+      document.cookie = "aetherq_guest_mode=true; path=/; max-age=86400";
+      document.cookie = `aetherq_guest_id=guest_${Math.random().toString(36).substring(7)}; path=/; max-age=86400`;
+    } catch (err: any) {
+      console.error("Guest login failed:", err);
+      throw new Error(err.message || "Failed to sign in as guest");
     }
-    
-    // Set custom guest cookies for middleware detection
-    document.cookie = "aetherq_guest_mode=true; path=/; max-age=86400";
-    document.cookie = `aetherq_guest_id=guest_${Math.random().toString(36).substring(7)}; path=/; max-age=86400`;
   };
 
   return (

@@ -48,6 +48,8 @@ type DataTableProps = {
 };
 
 export function DataTable({ rows, isLoading, caption }: DataTableProps) {
+  const { setCopilotOpen, setCopilotContext } = useWorkspaceStore();
+
   if (isLoading) {
     return <TableSkeleton />;
   }
@@ -56,7 +58,6 @@ export function DataTable({ rows, isLoading, caption }: DataTableProps) {
     return <EmptyState />;
   }
 
-  const { setCopilotOpen, setCopilotContext } = useWorkspaceStore();
   const keys = Object.keys(rows[0]);
 
   return (
