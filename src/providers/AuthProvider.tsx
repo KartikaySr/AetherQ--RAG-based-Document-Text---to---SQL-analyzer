@@ -14,6 +14,8 @@ type AuthContextType = {
   resetPasswordForEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   signInAsGuest: () => Promise<void>;
+  isGuest: boolean;
+  guestName: string;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -141,6 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPasswordForEmail,
         signOut,
         signInAsGuest,
+        isGuest: user?.email === (process.env.NEXT_PUBLIC_GUEST_EMAIL || "guest@aetherq.com"),
+        guestName: "Guest",
       }}
     >
       {children}
