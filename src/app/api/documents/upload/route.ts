@@ -114,12 +114,13 @@ export async function POST(request: Request) {
     const chunks = splitTextIntoChunks(extractedText);
     
     // Process embeddings in smaller batches to avoid HF limits
-    const batchSize = 20; // Increased to 20 to avoid Vercel timeouts
-    const documentChunks = [];
-    
+    const batchSize = 20; 
+    const batches = [];
     for (let i = 0; i < chunks.length; i += batchSize) {
-      const batch = chunks.slice(i, i + batchSize);
-      
+      batches.push(chunks.slice(i, i + batchSize));
+    }
+
+    const batchPromises = batches.map(async (batch, batchIndex) => {
       let embeddings: number[][] = [];
       let retries = 3;
       let delay = 1000;
@@ -142,16 +143,17 @@ export async function POST(request: Request) {
         }
       }
       
-      for (let j = 0; j < batch.length; j++) {
-        documentChunks.push({
-          document_id: documentId,
-          chunk_text: batch[j],
-          chunk_index: i + j,
-          embedding: embeddings[j] || embeddings[0], // fallback
-          user_id: userId,
-        });
-      }
-    }
+      return batch.map((text, j) => ({
+        document_id: documentId,
+        chunk_text: text,
+        chunk_index: batchIndex * batchSize + j,
+        embedding: embeddings[j] || embeddings[0], // fallback
+        user_id: userId,
+      }));
+    });
+
+    const chunkResults = await Promise.all(batchPromises);
+    const documentChunks = chunkResults.flat();
 
     // 5. Save chunks to pgvector
     const { error: chunksError } = await supabase
