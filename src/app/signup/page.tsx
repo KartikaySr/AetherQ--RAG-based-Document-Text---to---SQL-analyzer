@@ -54,6 +54,18 @@ function passwordStrength(pw: string): { score: number; label: string; color: st
 
 type Tier = "individual" | "startup" | "enterprise";
 
+const InputWrapper = ({ label, icon: Icon, children }: any) => (
+  <div className="space-y-1.5">
+    <label className="block text-[13px] font-medium text-white/70 ml-1">
+      {label}
+    </label>
+    <div className="relative group">
+      <Icon className="absolute left-3.5 top-3.5 w-5 h-5 text-emerald-400/50 group-focus-within:text-emerald-400 transition-colors" />
+      {children}
+    </div>
+  </div>
+);
+
 function SignUpContent() {
   const router = useRouter();
   const { signUp, signInWithOAuth } = useAuth();
@@ -122,17 +134,7 @@ function SignUpContent() {
     }
   };
 
-  const InputWrapper = ({ label, icon: Icon, children }: any) => (
-    <div className="space-y-1.5">
-      <label className="block text-[13px] font-medium text-white/70 ml-1">
-        {label}
-      </label>
-      <div className="relative group">
-        <Icon className="absolute left-3.5 top-3.5 w-5 h-5 text-emerald-400/50 group-focus-within:text-emerald-400 transition-colors" />
-        {children}
-      </div>
-    </div>
-  );
+
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-emerald-500/30 selection:text-emerald-100 overflow-x-hidden pt-12 pb-12">
