@@ -61,7 +61,7 @@ ${schemaStr}
 Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any explanation. Just the SQL.`;
 
     const { text: generatedSql } = await generateText({
-      model: groq("llama-3.3-70b-versatile"),
+      model: groq("openai/gpt-oss-20b"),
       system: systemPrompt,
       prompt: query,
     });

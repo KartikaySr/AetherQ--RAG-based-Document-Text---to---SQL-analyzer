@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     // Allow guest mode - do not block on missing session
 
-    const { message, analyticsContext, retrievalContext, model = "llama-3.3-70b-versatile" } = await req.json();
+    const { message, analyticsContext, retrievalContext, model = "openai/gpt-oss-20b" } = await req.json();
 
     let systemPrompt = `You are AetherQ Intelligence, an elite enterprise AI assistant.
 You provide highly structured, insightful, and concise responses.

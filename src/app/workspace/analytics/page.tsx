@@ -170,13 +170,13 @@ export default function AnalyticsPage() {
               Deploy as API
             </button>
             <Link
-              href="/documents"
+              href="/workspace/documents"
               className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
             >
               Document vault
             </Link>
             <Link
-              href="/chat"
+              href="/workspace/chat"
               className="rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:opacity-95"
             >
               Open AI Chat
