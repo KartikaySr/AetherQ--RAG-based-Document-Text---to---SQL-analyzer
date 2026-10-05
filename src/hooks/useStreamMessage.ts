@@ -10,36 +10,27 @@ type StreamOptions = {
   onError: (error: Error) => void;
 };
 
-function consumeSseLine(
-  line: string,
-  options: StreamOptions,
-  markComplete: () => void,
-  markFailed: (err: Error) => void
-): void {
-  if (!line.startsWith("data: ")) return;
-
+function parseSseLine(line: string): StreamChunk | "[DONE]" | Error | null {
+  if (!line.startsWith("data: ")) return null;
   const data = line.slice(6).trim();
-
-  if (!data || data === "[DONE]") {
-    if (data === "[DONE]") markComplete();
-    return;
-  }
+  if (!data) return null;
+  if (data === "[DONE]") return "[DONE]";
 
   try {
     const parsed = JSON.parse(data) as StreamChunk;
+    if (parsed.error !== undefined && String(parsed.error).length > 0) {
+      return new Error(String(parsed.error));
+    }
     if (
-      parsed.error !== undefined ||
       parsed.content !== undefined ||
       parsed.chunks !== undefined
     ) {
-      if (parsed.error !== undefined && String(parsed.error).length > 0) {
-        markFailed(new Error(String(parsed.error)));
-        return;
-      }
-      options.onChunk(parsed);
+      return parsed;
     }
+    return null;
   } catch {
     // Ignore malformed SSE JSON lines
+    return null;
   }
 }
 
@@ -56,6 +47,43 @@ export function useStreamMessage() {
         if (terminal) return;
         terminal = true;
         options.onError(err);
+      };
+
+      const processLines = (lines: string[]) => {
+        if (terminal) return;
+        let aggregatedContent = "";
+        let latestChunksStr: string | undefined = undefined;
+        let completeCalled = false;
+        let errorToEmit: Error | null = null;
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const parsed = parseSseLine(line);
+          
+          if (parsed === "[DONE]") {
+            completeCalled = true;
+            break;
+          } else if (parsed instanceof Error) {
+            errorToEmit = parsed;
+            break;
+          } else if (parsed) {
+            if (parsed.content) aggregatedContent += parsed.content;
+            if (parsed.chunks) latestChunksStr = parsed.chunks;
+          }
+        }
+
+        if (aggregatedContent || latestChunksStr) {
+          options.onChunk({
+            content: aggregatedContent || undefined,
+            chunks: latestChunksStr,
+          });
+        }
+
+        if (errorToEmit) {
+          fail(errorToEmit);
+        } else if (completeCalled) {
+          complete();
+        }
       };
 
       try {
@@ -85,7 +113,7 @@ export function useStreamMessage() {
         const decoder = new TextDecoder();
         let buffer = "";
 
-        while (true) {
+        while (!terminal) {
           const { done, value } = await reader.read();
           if (done) break;
 
@@ -93,18 +121,11 @@ export function useStreamMessage() {
           const lines = buffer.split("\n");
           buffer = lines.pop() || "";
 
-          for (const line of lines) {
-            consumeSseLine(line, options, complete, fail);
-            if (terminal) break;
-          }
-          if (terminal) break;
+          processLines(lines);
         }
 
         if (!terminal && buffer.trim()) {
-          for (const line of buffer.split("\n")) {
-            if (line.trim()) consumeSseLine(line, options, complete, fail);
-            if (terminal) break;
-          }
+          processLines(buffer.split("\n"));
         }
 
         if (!terminal) complete();
