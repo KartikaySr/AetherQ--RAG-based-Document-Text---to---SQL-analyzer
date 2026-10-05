@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     // Allow guest mode
 
-    const { query, documentId, matchCount = 8, model = "llama3-70b-8192" } = await req.json();
+    const { query, documentId, matchCount = 8, model = "llama-3.3-70b-versatile" } = await req.json();
 
     if (!query || !documentId) {
       return new Response("Missing query or documentId", { status: 400 });
