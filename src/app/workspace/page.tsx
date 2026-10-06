@@ -77,9 +77,7 @@ export default function WorkspacePage() {
       description:
         "Conversational intelligence with autonomous routing.",
       href: "/workspace/chat",
-      bg: "from-emerald-500/20",
-      iconColor: "text-emerald-400",
-      shadow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
+      iconColor: "text-[#D4AF37]",
     },
     {
       icon: Database,
@@ -87,9 +85,7 @@ export default function WorkspacePage() {
       description:
         "Natural language to validated SQL warehouse insights.",
       href: "/workspace/analytics",
-      bg: "from-amber-500/20",
-      iconColor: "text-amber-400",
-      shadow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
+      iconColor: "text-[#D4AF37]",
     },
     {
       icon: FileText,
@@ -97,39 +93,7 @@ export default function WorkspacePage() {
       description:
         "Upload and query your files with RAG vector search.",
       href: "/workspace/documents",
-      bg: "from-pink-500/20",
-      iconColor: "text-pink-400",
-      shadow: "shadow-[0_0_20px_rgba(236,72,153,0.3)]",
-    },
-    {
-      icon: Shield,
-      title: "Continuous Assurance",
-      description:
-        "Real-time audit intelligence with Red/Blue team ERP sync.",
-      href: "/workspace/assurance",
-      bg: "from-emerald-500/20",
-      iconColor: "text-emerald-400",
-      shadow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
-    },
-    {
-      icon: Sparkles,
-      title: "M&A Risk Prediction",
-      description:
-        "Predict synergy, integration timelines, and cultural friction.",
-      href: "/workspace/mna",
-      bg: "from-amber-500/20",
-      iconColor: "text-amber-400",
-      shadow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
-    },
-    {
-      icon: Database,
-      title: "Dynamic Tax Routing",
-      description:
-        "Visualize supply chain cash flows and Pillar Two exposure.",
-      href: "/workspace/tax",
-      bg: "from-pink-500/20",
-      iconColor: "text-pink-400",
-      shadow: "shadow-[0_0_20px_rgba(236,72,153,0.3)]",
+      iconColor: "text-[#D4AF37]",
     },
   ];
 
@@ -138,21 +102,7 @@ export default function WorkspacePage() {
     (user?.email?.split("@")[0]?.slice(-1)?.toUpperCase() ?? "");
 
   return (
-    <div className="min-h-screen relative selection:bg-emerald-500/30 selection:text-emerald-100 overflow-hidden">
-      
-      {/* Background Lights */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ x: [0, 100, -50, 0], y: [0, -50, 80, 0] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen"
-        />
-        <motion.div
-          animate={{ x: [0, -80, 60, 0], y: [0, 60, -40, 0] }}
-          transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[120px] mix-blend-screen"
-        />
-      </div>
+    <div className="min-h-screen relative overflow-hidden bg-black selection:bg-[#D4AF37]/30 selection:text-white">
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-20">
         
@@ -164,13 +114,13 @@ export default function WorkspacePage() {
           className="mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10"
         >
           <div className="max-w-2xl">
-            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-300 text-xs font-semibold uppercase tracking-[0.2em] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
+            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#2A2A2A] bg-[#141414] text-[#D4AF37] text-xs font-semibold uppercase tracking-[0.2em] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
+              <Sparkles className="w-4 h-4 text-[#D4AF37]" />
               Intelligence Mesh Active
             </div>
             <h1 className="text-4xl md:text-5xl font-light tracking-wide text-white mb-4">
               {greeting},<br />
-              <span className="font-serif italic bg-gradient-to-r from-emerald-400 via-emerald-600 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+              <span className="font-serif italic text-[#D4AF37]">
                 {displayName}
               </span>
             </h1>
@@ -181,17 +131,17 @@ export default function WorkspacePage() {
 
           <GlassCard className="p-6 shrink-0 md:w-80" interactive={false}>
             <div className="flex items-center gap-5">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-amber-500 text-xl font-bold text-white shadow-lg shadow-emerald-500/30">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#141414] border border-[#2A2A2A] text-xl font-bold text-[#D4AF37]">
                 {initial.slice(0, 2)}
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80 mb-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#666666] mb-1">
                   Verified Identity
                 </p>
                 <p className="truncate text-base font-semibold text-white">
                   {user?.email ?? "—"}
                 </p>
-                <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-amber-300/80">
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-[#D4AF37]">
                   <Shield className="h-4 w-4 shrink-0" />
                   RLS Vault Secured
                 </p>
@@ -228,7 +178,7 @@ export default function WorkspacePage() {
         </div>
 
         {/* Modules Grid */}
-        <h2 className="mb-8 text-sm font-bold uppercase tracking-[0.2em] text-white/50 pl-2 border-l-2 border-emerald-500/50">
+        <h2 className="mb-8 text-sm font-bold uppercase tracking-[0.2em] text-white/50 pl-2 border-l-2 border-[#D4AF37]/50">
           Deploy Modules
         </h2>
         <div className="grid md:grid-cols-3 gap-8 mb-16">
@@ -237,8 +187,8 @@ export default function WorkspacePage() {
             return (
               <GlassCard key={feature.href} href={feature.href} className="p-10 flex flex-col justify-between group h-[340px]">
                 <div>
-                  <div className={`w-16 h-16 rounded-[20px] bg-gradient-to-br ${feature.bg} to-transparent border border-white/10 flex items-center justify-center mb-8 shadow-lg ${feature.shadow} group-hover:scale-110 transition-transform duration-500`}>
-                    <Icon className={`w-8 h-8 ${feature.iconColor} drop-shadow-md`} />
+                  <div className={`w-16 h-16 rounded-[20px] bg-[#141414] border border-[#2A2A2A] flex items-center justify-center mb-8 shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                    <Icon className={`w-8 h-8 ${feature.iconColor}`} />
                   </div>
                   <h3 className="text-xl font-medium font-sans text-white mb-3 tracking-wide">{feature.title}</h3>
                   <p className="text-white/40 text-sm leading-relaxed font-light">
@@ -265,7 +215,7 @@ export default function WorkspacePage() {
                 <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/50">
                   Recent Transcripts
                 </h2>
-                <NeoButton href="/workspace/chat" variant="ghost" className="text-xs py-1.5 px-3 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400">
+                <NeoButton href="/workspace/chat" variant="ghost" className="text-xs py-1.5 px-3 rounded-full border border-[#2A2A2A] bg-[#141414] text-[#D4AF37] hover:bg-[#1F1F1F]">
                   View All <ArrowRight size={14} className="ml-1" />
                 </NeoButton>
               </div>

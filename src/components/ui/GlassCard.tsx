@@ -82,7 +82,7 @@ export function GlassCard({
         rotateY: interactive ? rotateY : 0,
         transformPerspective: 1000,
       }}
-      className={`relative group overflow-hidden rounded-[40px] border border-amber-500/10 bg-black/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(251,191,36,0.15)] transition-colors duration-500 hover:border-amber-400/30 ${className} ${href ? 'cursor-pointer' : ''}`}
+      className={`relative group overflow-hidden rounded-3xl border border-[#1F1F1F] bg-[#0A0A0A] shadow-[0_10px_40px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.02)] transition-colors duration-500 hover:border-[#333333] hover:bg-[#0F0F0F] ${className} ${href ? 'cursor-pointer' : ''}`}
       onClick={(e) => {
         if (onClick) onClick();
       }}

@@ -36,62 +36,42 @@ export function Sidebar() {
       href: "/workspace", 
       icon: LayoutDashboard, 
       label: "Command Center", 
-      activeBorder: "border-purple-500/30",
-      activeBg: "bg-purple-500/10",
-      activeText: "text-purple-400",
-      hoverText: "group-hover:text-purple-300",
-      indicatorColor: "bg-purple-400",
-      shadowLight: "rgba(168,85,247,0.1)",
-      shadowStrong: "rgba(168,85,247,0.5)",
-      borderColor: "border-purple-500/20"
+      activeBorder: "border-[#1F1F1F]",
+      activeBg: "bg-[#141414]",
+      activeText: "text-[#D4AF37]",
+      hoverText: "group-hover:text-white"
     },
     { 
       href: "/workspace/analytics", 
       icon: Database, 
       label: "Data Analytics", 
-      activeBorder: "border-amber-500/30",
-      activeBg: "bg-amber-500/10",
-      activeText: "text-amber-400",
-      hoverText: "group-hover:text-amber-300",
-      indicatorColor: "bg-amber-400",
-      shadowLight: "rgba(245,158,11,0.1)",
-      shadowStrong: "rgba(245,158,11,0.5)",
-      borderColor: "border-amber-500/20"
+      activeBorder: "border-[#1F1F1F]",
+      activeBg: "bg-[#141414]",
+      activeText: "text-[#D4AF37]",
+      hoverText: "group-hover:text-white"
     },
-
     { 
       href: "/workspace/documents", 
       icon: FileText, 
       label: "Document Vault", 
-      activeBorder: "border-[#D4AF37]/30",
-      activeBg: "bg-[#D4AF37]/10",
+      activeBorder: "border-[#1F1F1F]",
+      activeBg: "bg-[#141414]",
       activeText: "text-[#D4AF37]",
-      hoverText: "group-hover:text-[#E6C875]",
-      indicatorColor: "bg-[#D4AF37]",
-      shadowLight: "rgba(212,175,55,0.1)",
-      shadowStrong: "rgba(212,175,55,0.5)",
-      borderColor: "border-[#D4AF37]/20"
+      hoverText: "group-hover:text-white"
     },
     { 
       href: "/workspace/chat", 
       icon: Sparkles, 
       label: "AI Workspace", 
-      activeBorder: "border-emerald-500/30",
-      activeBg: "bg-emerald-500/10",
-      activeText: "text-emerald-400",
-      hoverText: "group-hover:text-emerald-300",
-      indicatorColor: "bg-emerald-400",
-      shadowLight: "rgba(16,185,129,0.1)",
-      shadowStrong: "rgba(16,185,129,0.5)",
-      borderColor: "border-emerald-500/20"
+      activeBorder: "border-[#1F1F1F]",
+      activeBg: "bg-[#141414]",
+      activeText: "text-[#D4AF37]",
+      hoverText: "group-hover:text-white"
     }
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] border border-amber-500/10 bg-black/40 backdrop-blur-3xl p-5 relative z-50 my-3 ml-3 rounded-[32px] shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(251,191,36,0.15)]">
-      
-      {/* Decorative Light */}
-      <div className="absolute top-0 left-0 w-full h-[300px] bg-emerald-500/10 blur-[100px] pointer-events-none -z-10" />
+    <aside className="hidden lg:flex flex-col w-[260px] bg-[#0A0A0A] border-r border-[#1F1F1F] p-5 relative z-50 my-3 ml-3 rounded-2xl shadow-xl">
 
       {/* Logo and Alerts */}
       <div className="mb-10 pl-2 flex justify-between items-start">
@@ -113,30 +93,21 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`group flex items-center gap-3 p-3 rounded-2xl border transition-colors duration-300 relative z-10 ${
+              className={`group flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 relative z-10 ${
                 active
-                  ? `${item.activeBorder} text-white`
-                  : "border-transparent text-white/60 hover:text-white"
+                  ? `${item.activeBorder} ${item.activeBg} text-white shadow-sm`
+                  : "border-transparent text-[#A0A0A0] hover:text-white hover:bg-[#141414]/50"
               }`}
             >
               {active && (
                 <motion.div
-                  layoutId="sidebar-active-pill"
-                  className={`absolute inset-0 rounded-2xl ${item.activeBg} -z-10 border ${item.borderColor}`}
-                  style={{ boxShadow: `0 0 20px ${item.shadowLight}` }}
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              {active && (
-                <motion.div
                   layoutId="sidebar-active-indicator"
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#D4AF37] rounded-r-full`}
-                  style={{ boxShadow: `0 0 10px rgba(212,175,55,0.5)` }}
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#D4AF37] rounded-r-full`}
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <Icon className={`w-[18px] h-[18px] shrink-0 transition-colors ${active ? item.activeText : `text-white/50 ${item.hoverText}`}`} />
-              <span className={`font-semibold text-[13px] tracking-wide ${active ? "text-white" : "text-white/60 group-hover:text-white"}`}>
+              <Icon className={`w-[18px] h-[18px] shrink-0 transition-colors ${active ? item.activeText : `text-[#666666] ${item.hoverText}`}`} />
+              <span className={`font-medium text-[13px] tracking-wide ${active ? "text-white" : "text-[#A0A0A0] group-hover:text-white"}`}>
                 {item.label}
               </span>
             </Link>
@@ -149,15 +120,15 @@ export function Sidebar() {
         <div className="pt-6">
           {/* User Info */}
           {(user || isGuest) && (
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5 mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-              <div className="w-10 h-10 rounded-xl bg-[linear-gradient(135deg,#006039,#D4AF37)] flex items-center justify-center text-sm font-serif font-bold text-white shadow-lg border border-[#D4AF37]/30">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0F0F0F] border border-[#1F1F1F] mb-4">
+              <div className="w-10 h-10 rounded-lg bg-[#141414] flex items-center justify-center text-sm font-serif font-bold text-[#D4AF37] border border-[#2A2A2A]">
                 {((isGuest ? guestName : user?.email)?.[0] ?? "G").toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-bold text-white truncate">
                   {isGuest ? guestName || "Guest" : user?.email?.split("@")[0]}
                 </p>
-                <p className="text-[10px] uppercase tracking-widest text-white/40 truncate mt-0.5">
+                <p className="text-[10px] uppercase tracking-widest text-[#666666] truncate mt-0.5">
                   {isGuest ? "Guest Session" : "Verified"}
                 </p>
               </div>
@@ -168,7 +139,7 @@ export function Sidebar() {
           <NeoButton 
             onClick={handleLogout} 
             variant="ghost" 
-            className="w-full text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 hover:border-red-500/30 font-semibold"
+            className="w-full text-[#A0A0A0] border border-[#1F1F1F] bg-[#0A0A0A] hover:bg-[#141414] hover:text-white font-semibold rounded-xl"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out

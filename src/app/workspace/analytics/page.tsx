@@ -129,15 +129,15 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-[100dvh] bg-black pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.1),transparent_40%)]" />
+
       <div className="pointer-events-none fixed inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#333_1px,transparent_1px),linear-gradient(to_bottom,#333_1px,transparent_1px)] bg-[size:48px_48px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <Link
-              href="/chat"
-              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-emerald-300/80 transition hover:text-emerald-200"
+              href="/workspace"
+              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[#D4AF37]/80 transition hover:text-[#D4AF37]"
             >
               <ArrowLeft size={14} />
               Back to workspace
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base">
               Live KPIs and mock-style visualizations powered by the same
               warehouse tables that feed AetherQ SQL mode. Configure{" "}
-              <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-emerald-200">
+              <code className="rounded bg-white/5 border border-[#1F1F1F] px-1.5 py-0.5 text-[11px] text-[#D4AF37]">
                 DATABASE_URL
               </code>{" "}
               for production-grade insights.
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
 
             <button
               onClick={() => setShowApiModal(true)}
-              className="flex items-center gap-2 rounded-2xl border border-purple-400/20 bg-purple-500/10 px-5 py-3 text-sm font-medium text-purple-100 transition hover:bg-purple-500/20 hover:border-purple-400/50"
+              className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-[#141414] px-5 py-3 text-sm font-medium text-[#D4AF37] transition hover:bg-[#1F1F1F]"
             >
               <Code size={16} />
               Deploy as API
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
             </Link>
             <Link
               href="/workspace/chat"
-              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:opacity-95"
+              className="rounded-2xl bg-[#D4AF37] px-5 py-3 text-sm font-semibold text-black shadow-lg transition hover:bg-[#E6C875]"
             >
               Open AI Chat
             </Link>
