@@ -8,7 +8,6 @@ import { IntegrationsModal } from "@/components/ui/IntegrationsModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { NeoButton } from "./ui/NeoButton";
-import { SonarAlerts } from "./ui/SonarAlerts";
 
 import { motion } from "framer-motion";
 
@@ -59,45 +58,7 @@ export function Sidebar() {
       shadowStrong: "rgba(245,158,11,0.5)",
       borderColor: "border-amber-500/20"
     },
-    { 
-      href: "/workspace/assurance", 
-      icon: Shield, 
-      label: "Continuous Assurance", 
-      activeBorder: "border-emerald-500/30",
-      activeBg: "bg-emerald-500/10",
-      activeText: "text-emerald-400",
-      hoverText: "group-hover:text-emerald-300",
-      indicatorColor: "bg-emerald-400",
-      shadowLight: "rgba(16,185,129,0.1)",
-      shadowStrong: "rgba(16,185,129,0.5)",
-      borderColor: "border-emerald-500/20"
-    },
-    { 
-      href: "/workspace/mna", 
-      icon: Sparkles, 
-      label: "M&A Risk Prediction", 
-      activeBorder: "border-amber-500/30",
-      activeBg: "bg-amber-500/10",
-      activeText: "text-amber-400",
-      hoverText: "group-hover:text-amber-300",
-      indicatorColor: "bg-amber-400",
-      shadowLight: "rgba(245,158,11,0.1)",
-      shadowStrong: "rgba(245,158,11,0.5)",
-      borderColor: "border-amber-500/20"
-    },
-    { 
-      href: "/workspace/tax", 
-      icon: Webhook, 
-      label: "Dynamic Tax Routing", 
-      activeBorder: "border-pink-500/30",
-      activeBg: "bg-pink-500/10",
-      activeText: "text-pink-400",
-      hoverText: "group-hover:text-pink-300",
-      indicatorColor: "bg-pink-400",
-      shadowLight: "rgba(236,72,153,0.1)",
-      shadowStrong: "rgba(236,72,153,0.5)",
-      borderColor: "border-pink-500/20"
-    },
+
     { 
       href: "/workspace/documents", 
       icon: FileText, 
@@ -140,7 +101,7 @@ export function Sidebar() {
           </h1>
           <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]/70">Mindineers Labs</p>
         </Link>
-        <SonarAlerts />
+
       </div>
 
       {/* Navigation */}

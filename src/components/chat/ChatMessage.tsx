@@ -11,8 +11,6 @@ import { MessageActions } from "./MessageActions";
 import { TypingIndicator } from "./TypingIndicator";
 import { MultiAgentTerminal } from "./MultiAgentTerminal";
 import { PresentationMode } from "@/components/ui/PresentationMode";
-import { InteractiveCalculator } from "@/components/ui/InteractiveCalculator";
-import { KnowledgeGraph } from "@/components/ui/KnowledgeGraph";
 import { BrainCircuit } from "lucide-react";
 import { exportService } from "@/services/exportService";
 import { useToast } from "@/providers/ToastProvider";
@@ -45,9 +43,7 @@ function ChatMessageInner({ message, onRegenerate }: ChatMessageProps) {
   const isStreaming = Boolean(message.isStreaming && !isUser);
 
   // Simulated triggers for Wave 3 features
-  const showCalculator = !isUser && !isStreaming && message.content.toLowerCase().includes("pricing calculator");
   const showMemoryBadge = !isUser && !isStreaming && message.content.toLowerCase().includes("quarterly metrics");
-  const showGraph = !isUser && !isStreaming && message.content.toLowerCase().includes("visualize relationships");
 
   const handleRegenerate = useCallback(async () => {
     if (!onRegenerate) return;
@@ -115,13 +111,7 @@ function ChatMessageInner({ message, onRegenerate }: ChatMessageProps) {
             </div>
           )}
 
-          {showCalculator && (
-            <InteractiveCalculator />
-          )}
 
-          {showGraph && (
-            <KnowledgeGraph />
-          )}
 
           {!isUser && !isStreaming && message.chunks && message.chunks.length > 0 && (
             <div className="mt-4">

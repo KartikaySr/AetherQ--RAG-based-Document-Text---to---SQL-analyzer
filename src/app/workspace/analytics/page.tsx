@@ -25,7 +25,7 @@ import {
   Zap,
   Code
 } from "lucide-react";
-import { RuleBuilder } from "@/components/ui/RuleBuilder";
+
 
 type Kpis = {
   totalRevenue: string;
@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const [showRuleBuilder, setShowRuleBuilder] = useState(false);
+
   const [showApiModal, setShowApiModal] = useState(false);
 
   const load = useCallback(async () => {
@@ -155,13 +155,7 @@ export default function AnalyticsPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowRuleBuilder(true)}
-              className="flex items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-5 py-3 text-sm font-medium text-amber-100 transition hover:bg-amber-500/20 hover:border-amber-400/50"
-            >
-              <Zap size={16} />
-              Create Automaton
-            </button>
+
             <button
               onClick={() => setShowApiModal(true)}
               className="flex items-center gap-2 rounded-2xl border border-purple-400/20 bg-purple-500/10 px-5 py-3 text-sm font-medium text-purple-100 transition hover:bg-purple-500/20 hover:border-purple-400/50"
@@ -377,9 +371,7 @@ export default function AnalyticsPage() {
         )}
       </div>
 
-      {showRuleBuilder && (
-        <RuleBuilder onClose={() => setShowRuleBuilder(false)} />
-      )}
+
 
       {showApiModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4 py-6">
