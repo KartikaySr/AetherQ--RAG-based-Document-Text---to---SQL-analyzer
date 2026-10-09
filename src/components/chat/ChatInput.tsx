@@ -95,10 +95,10 @@ export function ChatInput({
 
   const placeholder =
     mode === "documents"
-      ? "Ask grounded questions about your document..."
+      ? "Ask about your document…"
       : mode === "analytics"
-        ? "Ask in plain language: revenue by region, headcount, inventory…"
-        : "Ask AetherQ anything — General mode can auto-route to SQL or documents.";
+        ? "Ask about your data…"
+        : "Ask AetherQ a question…";
 
   return (
     <div className="space-y-3 rounded-[28px] border-[0.5px] border-white/10 bg-[#0f1216]/55 p-3 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
@@ -200,7 +200,7 @@ export function ChatInput({
         </div>
       ) : null}
 
-      <div className="relative flex gap-2">
+      <div className="chat-input-row relative flex gap-2">
         {selectedImage && (
           <div className="absolute left-3 top-[-60px] flex items-center gap-2 bg-[#0f1216]/80 backdrop-blur-md rounded-lg p-1 border border-emerald-500/30 z-10">
             <img src={selectedImage} alt="Selected" className="w-10 h-10 object-cover rounded-md" />
@@ -265,7 +265,7 @@ export function ChatInput({
         >
           <input
             type="file"
-            accept=".pdf,.doc,.docx,.txt"
+            accept=".pdf,.docx,.txt,.md,.csv,.json"
             onChange={handleFileChange}
             className="hidden"
             disabled={isUploadingFile || isLoading || disabled}

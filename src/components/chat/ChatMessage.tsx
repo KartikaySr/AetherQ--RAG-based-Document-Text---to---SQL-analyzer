@@ -82,7 +82,7 @@ function ChatMessageInner({ message, onRegenerate }: ChatMessageProps) {
 
       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
         <div
-          className={`max-w-[min(100%,90vw)] md:max-w-[75%] rounded-[20px] px-4 py-3 break-words overflow-x-auto text-[14px] leading-relaxed ${
+          className={`max-w-full rounded-[20px] px-4 py-3 break-words overflow-x-auto text-[14px] leading-relaxed ${
             isUser
               ? "ml-auto bg-[linear-gradient(110deg,#006039_0%,#014026_100%)] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_20px_-4px_rgba(0,0,0,0.6)] border border-[#b9edb0]/20"
               : "bg-[#0f1216]/60 border border-[#b9edb0]/10 text-[#E5E4E2] shadow-[inset_0_1px_1px_rgba(212,175,55,0.05),0_8px_20px_-4px_rgba(0,0,0,0.6)] backdrop-blur-2xl"

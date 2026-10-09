@@ -22,8 +22,7 @@ import {
   Ship,
   TrendingUp,
   Users,
-  Zap,
-  Code
+  Zap
 } from "lucide-react";
 
 
@@ -66,7 +65,7 @@ function KpiCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-lg shadow-emerald-500/10 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-5 shadow-lg shadow-emerald-500/10 backdrop-blur-xl"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_-10%,rgba(34,211,238,0.12),transparent_45%)]" />
       <div className="relative flex items-start justify-between gap-3">
@@ -81,7 +80,7 @@ function KpiCard({
             <p className="mt-2 text-xs text-white/45">{subtitle}</p>
           ) : null}
         </div>
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-200">
+        <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-200">
           {icon}
         </div>
       </div>
@@ -95,7 +94,6 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
 
 
-  const [showApiModal, setShowApiModal] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,12 +126,12 @@ export default function AnalyticsPage() {
     }).format(n);
 
   return (
-    <div className="min-h-[100dvh] bg-[#0f1216] pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
+    <div className="min-h-full bg-[#0f1216] pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
 
       <div className="pointer-events-none fixed inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#333_1px,transparent_1px),linear-gradient(to_bottom,#333_1px,transparent_1px)] bg-[size:48px_48px]" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
-        <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div className="workspace-content relative z-10">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
           <div>
             <Link
               href="/workspace"
@@ -142,36 +140,24 @@ export default function AnalyticsPage() {
               <ArrowLeft size={14} />
               Back to workspace
             </Link>
-            <h1 className="text-balance text-4xl font-bold tracking-tight md:text-5xl">
-              Enterprise Analytics
+            <h1 className="workspace-heading">
+              Analytics
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base">
-              Warehouse KPIs and visualizations powered by the same
-              warehouse tables that feed AetherQ SQL mode. Configure{" "}
-              <code className="rounded bg-white/5 border border-[#293039] px-1.5 py-0.5 text-[11px] text-[#b9edb0]">
-                DATABASE_URL
-              </code>{" "}
-              for production-grade insights.
+              Explore warehouse performance, inspect trends, and ask questions about your data.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
 
-            <button
-              onClick={() => setShowApiModal(true)}
-              className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-[#1c2229] px-5 py-3 text-sm font-medium text-[#b9edb0] transition hover:bg-[#293039]"
-            >
-              <Code size={16} />
-              Deploy as API
-            </button>
             <Link
               href="/workspace/documents"
-              className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
+              className="rounded-lg border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]"
             >
               Document vault
             </Link>
             <Link
               href="/workspace/chat"
-              className="rounded-2xl bg-[#b9edb0] px-5 py-3 text-sm font-semibold text-black shadow-lg transition hover:bg-[#E6C875]"
+              className="rounded-lg bg-[#b9edb0] px-5 py-3 text-sm font-semibold text-black shadow-lg transition hover:bg-[#E6C875]"
             >
               Open AI Chat
             </Link>
@@ -184,7 +170,7 @@ export default function AnalyticsPage() {
             <p className="text-sm">Pulling governed warehouse metrics…</p>
           </div>
         ) : error ? (
-          <div className="rounded-3xl border border-red-400/30 bg-red-500/10 p-6 text-sm text-red-100">
+          <div className="rounded-xl border border-red-400/30 bg-red-500/10 p-6 text-sm text-red-100">
             {error}
             <button
               type="button"
@@ -195,7 +181,7 @@ export default function AnalyticsPage() {
             </button>
           </div>
         ) : !kpis ? (
-          <div className="rounded-3xl border border-amber-400/25 bg-amber-500/10 p-6 text-sm text-amber-50">
+          <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 p-6 text-sm text-amber-50">
             No warehouse metrics are available. Ask your workspace administrator to check the analytics connection.
           </div>
         ) : (
@@ -204,7 +190,7 @@ export default function AnalyticsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8 flex items-start gap-3 rounded-3xl border border-amber-400/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-50"
+                className="mb-8 flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-50"
               >
                 <Package className="mt-0.5 shrink-0 text-amber-200" size={20} />
                 <div>
@@ -254,7 +240,7 @@ export default function AnalyticsPage() {
             <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
               <motion.div
                 layout
-                className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/30 backdrop-blur-2xl md:p-7"
+                className="rounded-xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/30 backdrop-blur-2xl md:p-7"
               >
                 <div className="mb-6 flex items-center justify-between gap-4">
                   <div>
@@ -308,7 +294,7 @@ export default function AnalyticsPage() {
 
               <motion.div
                 layout
-                className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/30 backdrop-blur-2xl md:p-7"
+                className="rounded-xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/30 backdrop-blur-2xl md:p-7"
               >
                 <div className="mb-6">
                   <p className="text-xs uppercase tracking-[0.28em] text-amber-200/65">
@@ -337,7 +323,7 @@ export default function AnalyticsPage() {
 
             <motion.div
               layout
-              className="mt-6 rounded-3xl border border-white/10 bg-[#0f1216]/35 p-5 shadow-inner shadow-black/40 backdrop-blur-2xl md:p-8"
+              className="mt-6 rounded-xl border border-white/10 bg-[#0f1216]/35 p-5 shadow-inner shadow-black/40 backdrop-blur-2xl md:p-8"
             >
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -367,48 +353,7 @@ export default function AnalyticsPage() {
 
 
 
-      {showApiModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f1216]/80 backdrop-blur-md px-4 py-6">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-2xl overflow-hidden rounded-3xl border border-purple-500/30 bg-[#071119] shadow-[0_0_50px_rgba(168,85,247,0.1)]"
-          >
-            <div className="border-b border-white/10 p-6 flex justify-between items-center bg-white/[0.02]">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                  <Code size={20} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">One-Click API Generation</h2>
-                  <p className="text-[10px] uppercase tracking-widest text-white/50 mt-1">Live Endpoint Created</p>
-                </div>
-              </div>
-              <button onClick={() => setShowApiModal(false)} className="text-white/50 hover:text-white transition">Dismiss</button>
-            </div>
 
-            <div className="p-8 space-y-6">
-              <div>
-                <p className="text-sm text-white/70 mb-2">Your API endpoint is now live. Use this curl command to fetch the current dashboard metrics securely from external systems.</p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-[#0f1216]/60 p-5 font-mono text-xs text-emerald-400 overflow-x-auto relative group/curl">
-                <div className="absolute top-3 right-3 opacity-0 group-hover/curl:opacity-100 transition">
-                  <span className="bg-white/10 px-2 py-1 rounded text-white/50 cursor-pointer hover:text-white">Copy</span>
-                </div>
-                curl -X GET "https://api.aetherq.com/v1/metrics/summary" \<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Authorization: Bearer aq_prod_8f92jklw03m4nf820" \<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-H "Content-Type: application/json"
-              </div>
-
-              <div className="flex items-center gap-4 bg-purple-500/5 border border-purple-500/20 p-4 rounded-xl">
-                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <p className="text-xs text-purple-200">Endpoint Status: <strong className="text-emerald-400">Online & Secured</strong> (Rate Limit: 100/min)</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }

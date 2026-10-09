@@ -25,7 +25,7 @@ function createWelcomeMessage(): ChatMessageType {
     id: "welcome",
     role: "assistant",
     content:
-      "# Welcome to AetherQ\n\nYour workspace connects three layers:\n\n- **AI Chat** — fast Groq reasoning with optional smart routing\n- **Documents** — vault-grounded RAG with citations\n- **SQL Analytics** — Text → SQL → results on curated warehouse tables\n\nPick a discipline with the segmented controls below—each module uses its own data workflow.",
+      "## What would you like to work on?\n\nAsk a question, explore your documents, or switch to analytics for authorized warehouse data.",
     timestamp: new Date("2026-05-10T12:00:00.000Z"),
   };
 }
@@ -779,7 +779,7 @@ function ChatWorkspace() {
     messages.length === 1 && !isLoading && streamingContent === "";
 
   return (
-    <div className="flex h-[calc(100dvh-56px)] lg:h-[100dvh] overflow-hidden overscroll-none bg-[#0f1216] text-white">
+    <div className="chat-workspace bg-[#0f1216] text-white">
       <ChatSidebar busy={isLoading} />
 
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:pb-0">
@@ -788,10 +788,10 @@ function ChatWorkspace() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#222_1px,transparent_1px),linear-gradient(to_bottom,#222_1px,transparent_1px)] bg-[size:60px_60px] opacity-5" />
         </div>
 
-        <header className="relative z-10 flex items-center justify-between border-b border-[#b9edb0]/10 bg-[#0f1216]/60 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl md:px-6 md:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <header className="chat-toolbar relative z-10 flex items-center justify-between border-b border-white/10">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <h1 className="truncate text-xl font-sans font-bold md:text-2xl luxury-text-gradient">AetherQ</h1>
-            <span className="inline-block max-w-[260px] shrink-0 truncate rounded-full border border-[#b9edb0]/20 bg-[#b9edb0]/5 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#b9edb0] sm:max-w-none">
+            <h1 className="truncate text-xl font-sans font-bold md:text-2xl luxury-text-gradient">Assistant</h1>
+            <span className="hidden sm:inline-block max-w-[260px] shrink-0 truncate rounded-full border border-[#b9edb0]/20 bg-[#b9edb0]/5 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#b9edb0] sm:max-w-none">
               {badgeLabel}
             </span>
           </div>
@@ -810,14 +810,14 @@ function ChatWorkspace() {
         </header>
 
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-4xl px-4 pb-[max(10rem,env(safe-area-inset-bottom)+8rem)] pt-6 lg:pb-36">
+          <div className="chat-reading-width py-6">
             {showingWelcomeSplash ? (
               <>
                 <div className="mb-12">
                   <ChatMessage message={createWelcomeMessage()} />
                 </div>
 
-                <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="mb-6 hidden gap-4 sm:grid sm:grid-cols-2">
                   {[
                     {
                       icon: "✨",
@@ -928,8 +928,8 @@ function ChatWorkspace() {
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-30 border-t border-white/10 bg-gradient-to-t from-black via-black/95 to-transparent pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl">
-          <div className="mx-auto max-w-4xl px-4 pb-2">
+        <div className="chat-composer relative z-30">
+          <div className="chat-reading-width">
             <ChatInput
               onSend={handleSendMessage}
               isLoading={isLoading}

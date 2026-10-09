@@ -181,14 +181,14 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl shadow-emerald-500/10 backdrop-blur-xl md:p-6"
+      className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl shadow-emerald-500/10 backdrop-blur-xl md:p-6"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.14),transparent_36%)]" />
 
       <div className="relative">
         <div
           {...getRootProps()}
-          className={`group flex min-h-[300px] cursor-default flex-col items-center justify-center rounded-3xl border border-dashed p-6 text-center transition-all duration-300 md:min-h-[360px] md:p-10 ${
+          className={`group flex min-h-[220px] cursor-default flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-all duration-300 md:min-h-[240px] md:p-6 ${
             isDragActive
               ? "border-emerald-300/70 bg-emerald-500/10 shadow-2xl shadow-emerald-500/20"
               : "border-white/15 bg-[#0f1216]/30 hover:border-emerald-400/40 hover:bg-white/[0.045]"
@@ -201,36 +201,30 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
               scale: isDragActive ? 1.06 : 1,
               y: isDragActive ? -4 : 0,
             }}
-            className="mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-emerald-400/20 bg-emerald-400/10 shadow-lg shadow-emerald-500/10"
+            className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-400/10 shadow-lg shadow-emerald-500/10"
           >
-            <UploadCloud className="text-emerald-300" size={36} />
+            <UploadCloud className="text-emerald-300" size={24} />
           </motion.div>
 
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-amber-200">
-            <Sparkles size={14} />
-            Document Intelligence
-          </div>
-
-          <h2 className="max-w-2xl text-2xl font-bold leading-tight text-white md:text-4xl">
+          <h2 className="max-w-2xl text-xl font-semibold leading-tight text-white">
             Add context to your workspace.
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
-            Drag PDFs, DOCX, and text files here or browse. AetherQ stores them in
-            private storage, extracts their text, and indexes passages for cited answers.
+            Drop your files here or browse. Sources are private and indexed for cited answers.
           </p>
 
-          <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <div className="mt-5 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <button
               type="button"
               onClick={open}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-7 py-4 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:scale-[1.02] sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:scale-[1.02] sm:w-auto"
             >
               <FileText size={18} />
               Select Files
             </button>
 
-            <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm text-white/55">
+            <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/55">
               PDF · DOCX · TXT · MD · CSV · JSON · max {MAX_FILE_SIZE_MB}MB
             </div>
           </div>

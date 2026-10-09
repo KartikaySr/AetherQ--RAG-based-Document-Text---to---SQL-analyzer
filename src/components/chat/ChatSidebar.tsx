@@ -104,7 +104,9 @@ export function ChatSidebar({ busy = false }: { busy?: boolean }) {
         type="button"
         onClick={toggleSidebar}
         aria-label="Toggle conversation history"
-        className="fixed left-4 top-[68px] z-40 rounded-lg border border-white/10 bg-[#0f1216]/90 p-2 text-white/70 hover:bg-white/10 lg:hidden"
+        className="chat-history-toggle"
+        aria-expanded={sidebarOpen}
+        aria-controls="conversation-history"
       >
         {sidebarOpen ? (
           <X size={20} />
@@ -116,16 +118,15 @@ export function ChatSidebar({ busy = false }: { busy?: boolean }) {
       {/* Backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-[#0f1216]/50 lg:hidden"
+          className="chat-history-backdrop"
           onClick={toggleSidebar}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed bottom-0 left-0 top-0 z-30 flex w-[min(100%,288px)] flex-col border-r border-white/10 bg-[#0f1216]/95 backdrop-blur-xl p-4 transition-transform duration-300 ease-out lg:relative lg:h-screen lg:w-72 lg:max-w-none lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        id="conversation-history" aria-label="Conversation history"
+        className={`chat-history ${sidebarOpen ? "is-open" : ""}`}
       >
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -134,11 +135,11 @@ export function ChatSidebar({ busy = false }: { busy?: boolean }) {
             className="flex items-center gap-2 font-semibold text-white hover:opacity-80 transition"
           >
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-amber-500" />
-            AetherQ
+            Conversations
           </Link>
           <button
             onClick={toggleSidebar}
-            className="rounded-lg p-1 text-white/50 hover:bg-white/10 lg:hidden"
+            className="chat-history-close" aria-label="Close conversation history"
           >
             <X size={18} />
           </button>
