@@ -1,3 +1,4 @@
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "@/lib/upload-limits";
 import { enforceQuota } from "@/lib/server/quota";
 import { authenticatedClient } from "@/lib/server/auth";
 import { NextResponse } from "next/server";
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size === 0 || file.size > 10 * 1024 * 1024) return Response.json({ error: "Files must be between 1 byte and 10 MB." }, { status: 413 });
+    if (file.size === 0 || file.size > MAX_UPLOAD_BYTES) return Response.json({ error: `Files must be between 1 byte and ${MAX_UPLOAD_MB} MB.` }, { status: 413 });
     if (!/\.(pdf|docx|txt|md|csv|json)$/i.test(file.name)) return Response.json({ error: "Supported formats: PDF, DOCX, TXT, MD, CSV, JSON." }, { status: 415 });
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

@@ -1,4 +1,5 @@
 "use client";
+import { MAX_UPLOAD_MB, MAX_UPLOAD_BYTES } from "@/lib/upload-limits";
 
 import { useCallback, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -28,8 +29,8 @@ type DocumentUploaderProps = {
   onUploaded: (document: UploadedDocument) => void;
 };
 
-const MAX_FILE_SIZE_MB = 10;
-const MAX_FILE_SIZE = Math.max(5, MAX_FILE_SIZE_MB) * 1024 * 1024;
+const MAX_FILE_SIZE_MB = MAX_UPLOAD_MB;
+const MAX_FILE_SIZE = MAX_UPLOAD_BYTES;
 const SUPPORTED_MIME_TYPES = {
   "application/pdf": [".pdf"],
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [

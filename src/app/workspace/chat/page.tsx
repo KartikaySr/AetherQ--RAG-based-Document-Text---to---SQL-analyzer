@@ -1,4 +1,5 @@
 "use client";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "@/lib/upload-limits";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
@@ -690,6 +691,7 @@ function ChatWorkspace() {
   );
 
   const handleFileUpload = useCallback(async (file: File) => {
+    if (file.size > MAX_UPLOAD_BYTES) { addToast(`Files must be no larger than ${MAX_UPLOAD_MB} MB.`, "error"); return; }
     setIsUploadingFile(true);
     addToast(`Uploading ${file.name}...`, "info");
     try {
