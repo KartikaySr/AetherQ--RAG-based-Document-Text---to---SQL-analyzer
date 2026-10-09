@@ -101,7 +101,7 @@ export function ChatInput({
         : "Ask AetherQ anything — General mode can auto-route to SQL or documents.";
 
   return (
-    <div className="space-y-3 rounded-[28px] border-[0.5px] border-white/10 bg-black/55 p-3 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+    <div className="space-y-3 rounded-[28px] border-[0.5px] border-white/10 bg-[#0f1216]/55 p-3 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
       <div className="flex flex-wrap gap-2 px-1">
         <button
           type="button"
@@ -180,7 +180,7 @@ export function ChatInput({
                   ? "This file is still ingesting embeddings; pick a completed doc or wait."
                   : "Answers use semantic retrieval across the selected vault document."}
             </p>
-            <button 
+            <button
               type="button"
               onClick={handleImageSelect}
               className="flex items-center gap-1.5 text-[11px] text-white/40 transition hover:text-emerald-400"
@@ -202,9 +202,9 @@ export function ChatInput({
 
       <div className="relative flex gap-2">
         {selectedImage && (
-          <div className="absolute left-3 top-[-60px] flex items-center gap-2 bg-black/80 backdrop-blur-md rounded-lg p-1 border border-emerald-500/30 z-10">
+          <div className="absolute left-3 top-[-60px] flex items-center gap-2 bg-[#0f1216]/80 backdrop-blur-md rounded-lg p-1 border border-emerald-500/30 z-10">
             <img src={selectedImage} alt="Selected" className="w-10 h-10 object-cover rounded-md" />
-            <button 
+            <button
               onClick={() => setSelectedImage(null)}
               className="p-1 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition"
             >
@@ -212,21 +212,21 @@ export function ChatInput({
             </button>
           </div>
         )}
-        
+
         <AnimatePresence>
           {isUploadingFile && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute left-0 right-0 top-[-50px] flex items-center justify-between gap-3 bg-black/80 backdrop-blur-xl border border-emerald-500/30 text-emerald-300 text-xs rounded-2xl px-4 py-2.5 z-20 shadow-[0_4px_20px_rgba(16,185,129,0.2)]"
+              className="absolute left-0 right-0 top-[-50px] flex items-center justify-between gap-3 bg-[#0f1216]/80 backdrop-blur-xl border border-emerald-500/30 text-emerald-300 text-xs rounded-2xl px-4 py-2.5 z-20 shadow-[0_4px_20px_rgba(16,185,129,0.2)]"
             >
               <div className="flex items-center gap-3">
                 <div className="relative flex size-8 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
                   <DatabaseZap className="size-4 animate-pulse text-emerald-400" />
-                  <motion.div 
-                    animate={{ rotate: 360 }} 
+                  <motion.div
+                    animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                     className="absolute inset-0 rounded-full border-t-2 border-emerald-400 opacity-50"
                   />
@@ -257,17 +257,17 @@ export function ChatInput({
           placeholder={placeholder}
           disabled={isLoading || disabled || isUploadingFile}
           rows={2}
-          className="min-h-[48px] min-w-0 flex-1 resize-none rounded-[20px] border-[0.5px] border-[#D4AF37]/20 bg-[#030604]/60 px-4 py-3 text-[14px] text-[#E5E4E2] outline-none placeholder:text-white/20 focus:border-[#D4AF37]/50 focus:bg-[#030604]/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] transition-all duration-300 disabled:opacity-50"
+          className="min-h-[48px] min-w-0 flex-1 resize-none rounded-[20px] border-[0.5px] border-[#b9edb0]/20 bg-[#030604]/60 px-4 py-3 text-[14px] text-[#E5E4E2] outline-none placeholder:text-white/20 focus:border-[#b9edb0]/50 focus:bg-[#030604]/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] transition-all duration-300 disabled:opacity-50"
         />
         <label
-          className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-[18px] transition-all duration-300 border bg-black/40 text-white/60 border-white/10 hover:border-emerald-400/40 hover:text-white hover:bg-black/60 cursor-pointer"
+          className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-[18px] transition-all duration-300 border bg-[#0f1216]/40 text-white/60 border-white/10 hover:border-emerald-400/40 hover:text-white hover:bg-[#0f1216]/60 cursor-pointer"
           title="Upload Document (PDF, Word, TXT)"
         >
-          <input 
-            type="file" 
+          <input
+            type="file"
             accept=".pdf,.doc,.docx,.txt"
             onChange={handleFileChange}
-            className="hidden" 
+            className="hidden"
             disabled={isUploadingFile || isLoading || disabled}
           />
           <Paperclip size={18} />
@@ -278,7 +278,7 @@ export function ChatInput({
           className={`mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-[18px] transition-all duration-300 border ${
             isListening
               ? "bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-pulse"
-              : "bg-black/40 text-white/60 border-white/10 hover:border-amber-400/40 hover:text-white hover:bg-black/60"
+              : "bg-[#0f1216]/40 text-white/60 border-white/10 hover:border-amber-400/40 hover:text-white hover:bg-[#0f1216]/60"
           }`}
           aria-label={isListening ? "Stop listening" : "Start listening"}
         >
@@ -288,7 +288,7 @@ export function ChatInput({
           type="button"
           onClick={handleSend}
           disabled={isLoading || disabled || !input.trim()}
-          className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#006039,#D4AF37)] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_2px_10px_rgba(212,175,55,0.3)] border border-[#D4AF37]/40 animate-border-glow transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:animate-none disabled:border-white/10 disabled:shadow-none"
+          className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#006039,#b9edb0)] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_2px_10px_rgba(212,175,55,0.3)] border border-[#b9edb0]/40 animate-border-glow transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:animate-none disabled:border-white/10 disabled:shadow-none"
           aria-label="Send message"
         >
           {isLoading ? (

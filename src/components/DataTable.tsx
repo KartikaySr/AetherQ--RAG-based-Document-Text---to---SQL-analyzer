@@ -67,7 +67,7 @@ export function DataTable({ rows, isLoading, caption }: DataTableProps) {
           {caption}
         </figcaption>
       ) : null}
-      <div className="relative overflow-x-auto rounded-2xl border border-white/10 bg-black/35 shadow-inner shadow-black/40">
+      <div className="relative overflow-x-auto rounded-2xl border border-white/10 bg-[#0f1216]/35 shadow-inner shadow-black/40">
         <div className="max-h-[min(60vh,520px)] overflow-y-auto overscroll-contain">
           <table className="min-w-full caption-bottom text-left text-[11px] text-white/80">
             <thead className="sticky top-0 z-10 border-b border-white/10 bg-[#071018]/96 backdrop-blur-md">

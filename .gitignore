@@ -45,3 +45,7 @@ models
 
 # typescript
 *.tsbuildinfo
+
+# Cloud-sync duplicate dependency trees and local model weights
+/node_modules*/
+/.models/

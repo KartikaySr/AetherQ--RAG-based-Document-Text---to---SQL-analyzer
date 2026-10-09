@@ -49,12 +49,12 @@ export function PresentationMode({ isOpen, onClose, content }: PresentationModeP
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-3xl text-[#E5E4E2]"
+        className="fixed inset-0 z-[100] flex flex-col bg-[#0f1216]/95 backdrop-blur-3xl text-[#E5E4E2]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#D4AF37]/20">
+        <div className="flex items-center justify-between p-6 border-b border-[#b9edb0]/20">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-serif font-bold text-[#D4AF37] tracking-widest uppercase">
+            <h2 className="text-xl font-sans font-bold text-[#b9edb0] tracking-widest uppercase">
               Executive Briefing
             </h2>
             <div className="flex gap-1">
@@ -62,22 +62,22 @@ export function PresentationMode({ isOpen, onClose, content }: PresentationModeP
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === currentSlide ? "w-8 bg-[#D4AF37]" : "w-2 bg-white/20"
+                    i === currentSlide ? "w-8 bg-[#b9edb0]" : "w-2 bg-white/20"
                   }`}
                 />
               ))}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setIsPlaying(!isPlaying)}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white/80 transition"
             >
               {isPlaying ? <Pause size={16} /> : <Play size={16} />}
               <span className="text-sm font-medium">{isPlaying ? "Pause" : "Auto-Play"}</span>
             </button>
-            <button 
+            <button
               onClick={onClose}
               className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 hover:text-red-400 transition"
             >
@@ -89,8 +89,8 @@ export function PresentationMode({ isOpen, onClose, content }: PresentationModeP
         {/* Content Area */}
         <div className="flex-1 flex items-center justify-center p-12 relative overflow-hidden">
           {/* Subtle background glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#D4AF37]/5 rounded-full blur-[120px] pointer-events-none" />
-          
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#b9edb0]/5 rounded-full blur-[120px] pointer-events-none" />
+
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
@@ -100,7 +100,7 @@ export function PresentationMode({ isOpen, onClose, content }: PresentationModeP
               transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
               className="max-w-4xl w-full text-center"
             >
-              <div className="text-3xl md:text-5xl leading-relaxed font-serif text-white/90 [&_h1]:text-6xl [&_h1]:text-[#D4AF37] [&_h1]:mb-6 [&_h2]:text-4xl [&_h2]:mb-4 [&_h3]:text-3xl [&_h3]:mb-4 [&_strong]:text-[#D4AF37] [&_strong]:font-bold [&_code]:text-emerald-400 [&_code]:bg-emerald-400/10 [&_code]:px-2 [&_code]:rounded-lg">
+              <div className="text-3xl md:text-5xl leading-relaxed font-sans text-white/90 [&_h1]:text-6xl [&_h1]:text-[#b9edb0] [&_h1]:mb-6 [&_h2]:text-4xl [&_h2]:mb-4 [&_h3]:text-3xl [&_h3]:mb-4 [&_strong]:text-[#b9edb0] [&_strong]:font-bold [&_code]:text-emerald-400 [&_code]:bg-emerald-400/10 [&_code]:px-2 [&_code]:rounded-lg">
                 <MarkdownRenderer content={slides[currentSlide] || ""} />
               </div>
             </motion.div>
@@ -108,19 +108,19 @@ export function PresentationMode({ isOpen, onClose, content }: PresentationModeP
 
           {/* Navigation Controls overlay */}
           <div className="absolute inset-y-0 left-0 w-32 flex items-center justify-center">
-            <button 
+            <button
               onClick={prevSlide}
               disabled={currentSlide === 0}
-              className="p-4 rounded-full bg-black/50 text-white/50 hover:bg-white/10 hover:text-white transition disabled:opacity-0"
+              className="p-4 rounded-full bg-[#0f1216]/50 text-white/50 hover:bg-white/10 hover:text-white transition disabled:opacity-0"
             >
               <ChevronLeft size={32} />
             </button>
           </div>
           <div className="absolute inset-y-0 right-0 w-32 flex items-center justify-center">
-            <button 
+            <button
               onClick={nextSlide}
               disabled={currentSlide === slides.length - 1}
-              className="p-4 rounded-full bg-black/50 text-white/50 hover:bg-white/10 hover:text-white transition disabled:opacity-0"
+              className="p-4 rounded-full bg-[#0f1216]/50 text-white/50 hover:bg-white/10 hover:text-white transition disabled:opacity-0"
             >
               <ChevronRight size={32} />
             </button>

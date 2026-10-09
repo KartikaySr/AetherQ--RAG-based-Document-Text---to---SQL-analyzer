@@ -11,7 +11,7 @@ import {
 } from "@/services/conversationService";
 import { formatDistanceToNow } from "date-fns";
 
-export function ChatSidebar() {
+export function ChatSidebar({ busy = false }: { busy?: boolean }) {
   const {
     sidebarOpen,
     toggleSidebar,
@@ -42,11 +42,12 @@ export function ChatSidebar() {
     };
 
     loadConversations();
-  }, [addToast, chatSessionNonce]);
+  }, [addToast, chatSessionNonce, selectedConversationId]);
 
   const handleDeleteChat = async (e: React.MouseEvent, chatId: string) => {
     e.stopPropagation();
-    
+    if (busy) return;
+
     if (!confirm("Are you sure you want to delete this chat? This action cannot be undone.")) {
       return;
     }
@@ -59,13 +60,13 @@ export function ChatSidebar() {
         return;
       }
       setRecentChats((prev) => prev.filter((chat) => chat.id !== chatId));
-      
+
       // If the deleted chat was selected, select a new one
       if (selectedConversationId === chatId) {
         setSelectedConversation(null);
         bumpChatSession();
       }
-      
+
       addToast("Chat deleted successfully", "success");
     } catch (error) {
       console.error("Failed to delete conversation:", error);
@@ -76,6 +77,7 @@ export function ChatSidebar() {
   };
 
   const handleSelectChat = (conversationId: string) => {
+    if (busy) return;
     setSelectedConversation(conversationId);
     // On mobile, close sidebar after selection
     if (sidebarOpen) {
@@ -101,7 +103,8 @@ export function ChatSidebar() {
       <button
         type="button"
         onClick={toggleSidebar}
-        className="fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-40 rounded-lg border border-white/10 bg-black/90 p-2 text-white/70 hover:bg-white/10 lg:hidden"
+        aria-label="Toggle conversation history"
+        className="fixed left-4 top-[68px] z-40 rounded-lg border border-white/10 bg-[#0f1216]/90 p-2 text-white/70 hover:bg-white/10 lg:hidden"
       >
         {sidebarOpen ? (
           <X size={20} />
@@ -113,14 +116,14 @@ export function ChatSidebar() {
       {/* Backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-20 bg-[#0f1216]/50 lg:hidden"
           onClick={toggleSidebar}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed bottom-0 left-0 top-0 z-30 flex w-[min(100%,288px)] flex-col border-r border-white/10 bg-black/95 backdrop-blur-xl p-4 transition-transform duration-300 ease-out lg:relative lg:h-screen lg:w-72 lg:max-w-none lg:translate-x-0 ${
+        className={`fixed bottom-0 left-0 top-0 z-30 flex w-[min(100%,288px)] flex-col border-r border-white/10 bg-[#0f1216]/95 backdrop-blur-xl p-4 transition-transform duration-300 ease-out lg:relative lg:h-screen lg:w-72 lg:max-w-none lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -144,6 +147,7 @@ export function ChatSidebar() {
         {/* New chat button */}
         <button
           type="button"
+          disabled={busy}
           onClick={() => {
             setSelectedConversation(null);
             bumpChatSession();
@@ -185,6 +189,7 @@ export function ChatSidebar() {
                 }`}
               >
                 <button
+                  disabled={busy}
                   onClick={() => handleSelectChat(chat.id)}
                   className="w-full text-left px-3 py-2.5 text-sm text-white/70 active:scale-95"
                 >
@@ -203,7 +208,7 @@ export function ChatSidebar() {
                 {/* Delete button - shows on hover */}
                 <button
                   onClick={(e) => handleDeleteChat(e, chat.id)}
-                  disabled={deletingId === chat.id}
+                  disabled={busy || deletingId === chat.id}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-white/30 hover:bg-red-500/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition disabled:opacity-50"
                   title="Delete this chat"
                 >
@@ -221,7 +226,7 @@ export function ChatSidebar() {
         {/* Footer */}
         <div className="space-y-3 border-t border-white/10 pt-4">
           <Link
-            href="https://github.com/KartikaySr/AetherQ---Rag-Based-Document-Analyzer"
+            href="https://github.com/KartikaySr/AetherQ--RAG-based-Document-Text---to---SQL-analyzer"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-100/90 hover:bg-amber-500/[0.14] transition font-medium"
@@ -245,7 +250,7 @@ export function ChatSidebar() {
           <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3 text-xs space-y-1">
             <p className="font-medium text-white/70">Mindineers Labs</p>
             <p className="text-white/40">
-              Enterprise Intelligence v1.0
+              Connected workspace
             </p>
           </div>
         </div>

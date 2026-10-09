@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPasswordForEmail = async (email: string) => {
     const client = supabaseRef.current ?? createClient();
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
     });
     if (error) throw error;
   };
@@ -108,27 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInAsGuest = async () => {
     const client = supabaseRef.current ?? createClient();
-    
-    const guestEmail = process.env.NEXT_PUBLIC_GUEST_EMAIL || "guest@aetherq.com";
-    const guestPassword = process.env.NEXT_PUBLIC_GUEST_PASSWORD || "guest123";
 
-    try {
-      const { error } = await client.auth.signInWithPassword({
-        email: guestEmail,
-        password: guestPassword,
-      });
-
-      if (error) {
-        throw error;
-      }
-      
-      // Set custom guest cookies for middleware detection
-      document.cookie = "aetherq_guest_mode=true; path=/; max-age=86400";
-      document.cookie = `aetherq_guest_id=guest_${Math.random().toString(36).substring(7)}; path=/; max-age=86400`;
-    } catch (err: any) {
-      console.error("Guest login failed:", err);
-      throw new Error(err.message || "Failed to sign in as guest");
-    }
+    const { error } = await client.auth.signInAnonymously();
+    if (error) throw new Error("Guest access is unavailable. Please sign in or create an account.");
   };
 
   return (
@@ -143,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPasswordForEmail,
         signOut,
         signInAsGuest,
-        isGuest: user?.email === (process.env.NEXT_PUBLIC_GUEST_EMAIL || "guest@aetherq.com"),
+        isGuest: user?.is_anonymous === true,
         guestName: "Guest",
       }}
     >

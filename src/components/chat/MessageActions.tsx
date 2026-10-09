@@ -48,13 +48,13 @@ export function MessageActions({
       setIsSpeaking(false);
       return;
     }
-    
+
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(content);
-    
+
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
-    
+
     setIsSpeaking(true);
     window.speechSynthesis.speak(utterance);
   };
@@ -105,7 +105,7 @@ export function MessageActions({
       {onPresent && (
         <button
           onClick={onPresent}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/10 px-3 py-1.5 text-xs text-[#D4AF37] hover:bg-[#D4AF37]/20 hover:text-[#E6C875] transition"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#b9edb0]/20 bg-[#b9edb0]/10 px-3 py-1.5 text-xs text-[#b9edb0] hover:bg-[#b9edb0]/20 hover:text-[#E6C875] transition"
           title="Enter Presentation Mode"
         >
           <Presentation size={14} />

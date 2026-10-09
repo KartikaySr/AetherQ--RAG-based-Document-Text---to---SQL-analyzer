@@ -1,45 +1,26 @@
+import { enforceQuota } from "@/lib/server/quota";
+import { authenticatedClient } from "@/lib/server/auth";
 import { NextResponse } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { HfInference } from "@huggingface/inference";
+import { embedQuery } from "@/lib/server/embeddings";
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: "", ...options });
-          },
-        },
-      }
-    );
+    const { supabase, user } = await authenticatedClient();
+    if (!user) return Response.json({ error: "Sign in to continue." }, { status: 401 });
+    const quotaResponse = await enforceQuota(supabase);
+    if (quotaResponse) return quotaResponse;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    // Allow guest mode
 
     const { query, matchCount = 10 } = await req.json();
 
-    if (!query) {
+    if (typeof query !== "string" || !query.trim() || query.length > 12000 || !Number.isInteger(matchCount) || matchCount < 1 || matchCount > 20) {
       return NextResponse.json({ error: "No query provided" }, { status: 400 });
     }
 
     // Embed the query
-    const queryEmbedding = await hf.featureExtraction({
-      model: "sentence-transformers/all-MiniLM-L6-v2",
-      inputs: query,
-    });
+    const queryEmbedding = await embedQuery(query);
 
     // RPC match_document_chunks
     const { data: chunks, error } = await supabase.rpc("match_document_chunks", {
@@ -62,7 +43,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Search API error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to search" },
+      { error: "Search is temporarily unavailable." },
       { status: 500 }
     );
   }

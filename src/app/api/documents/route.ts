@@ -1,24 +1,11 @@
+import { authenticatedClient } from "@/lib/server/auth";
 import { NextResponse } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) { return cookieStore.get(name)?.value; },
-          set(name: string, value: string, options: CookieOptions) { cookieStore.set({ name, value, ...options }); },
-          remove(name: string, options: CookieOptions) { cookieStore.set({ name, value: "", ...options }); },
-        },
-      }
-    );
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { supabase, user } = await authenticatedClient();
+    if (!user) return Response.json({ error: "Sign in to continue." }, { status: 401 });
+    if (!user) {
       return NextResponse.json({ documents: [] });
     }
 
@@ -26,24 +13,26 @@ export async function GET(req: Request) {
       .from("documents_metadata")
       .select(`
         *,
-        document_chunks ( chunk_text )
+        document_chunks ( count )
       `)
+      .eq("user_id", user.id)
       .order("uploaded_at", { ascending: false });
 
     if (error) throw error;
 
     const mappedDocuments = documents?.map((doc: any) => {
-      const chunks = doc.document_chunks || [];
+      const chunkCount = doc.document_chunks?.[0]?.count ?? 0;
       return {
         id: doc.id,
         name: doc.name,
         sizeBytes: doc.size,
+        size: doc.size,
         status: "uploaded",
         storage_path: doc.storage_path,
-        chunk_count: chunks.length,
+        chunk_count: chunkCount,
         extraction: {
-          extraction_status: chunks.length > 0 ? "completed" : "pending",
-          extracted_text: chunks[0]?.chunk_text || "",
+          extraction_status: chunkCount > 0 ? "completed" : "pending",
+          extracted_text: "",
         },
         uploadedAt: doc.uploaded_at,
       };
@@ -52,55 +41,31 @@ export async function GET(req: Request) {
     return NextResponse.json({ documents: mappedDocuments });
   } catch (error: any) {
     console.error("Documents fetch error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch documents" }, { status: 500 });
+    return NextResponse.json({ error: "Documents could not be loaded." }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) { return cookieStore.get(name)?.value; },
-          set(name: string, value: string, options: CookieOptions) { cookieStore.set({ name, value, ...options }); },
-          remove(name: string, options: CookieOptions) { cookieStore.set({ name, value: "", ...options }); },
-        },
-      }
-    );
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { supabase, user } = await authenticatedClient();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id, storage_path } = await req.json();
-    if (!id || !storage_path) {
-      return NextResponse.json({ error: "Missing id or storage_path" }, { status: 400 });
-    }
-
-    // Delete from metadata table (cascades to chunks)
-    const { error: dbError } = await supabase
-      .from("documents_metadata")
-      .delete()
-      .eq("id", id);
-
+    const { id } = await req.json();
+    if (typeof id !== "string") return Response.json({ error: "Missing document ID." }, { status: 400 });
+    const { data: doc, error: lookupError } = await supabase.from("documents_metadata").select("storage_path").eq("id", id).eq("user_id", user.id).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (!doc) return Response.json({ error: "Document not found." }, { status: 404 });
+    if (!doc.storage_path.startsWith(`${user.id}/`)) return Response.json({ error: "Legacy document requires storage migration." }, { status: 409 });
+    const { error: storageError } = await supabase.storage.from("documents-private").remove([doc.storage_path]);
+    if (storageError) throw storageError;
+    const { error: dbError } = await supabase.from("documents_metadata").delete().eq("id", id).eq("user_id", user.id);
     if (dbError) throw dbError;
-
-    // Delete from storage bucket
-    const { error: storageError } = await supabase.storage
-      .from("documents")
-      .remove([storage_path]);
-
-    if (storageError) {
-      console.error("Failed to delete from storage:", storageError);
-    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Documents delete error:", error);
-    return NextResponse.json({ error: error.message || "Failed to delete document" }, { status: 500 });
+    return NextResponse.json({ error: "Document deletion failed. Please retry." }, { status: 500 });
   }
 }

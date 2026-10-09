@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const GUEST_MODE_COOKIE = "aetherq_guest_mode";
-const GUEST_ID_COOKIE = "aetherq_guest_id";
 
 const protectedRoutes = ["/workspace", "/documents", "/chat", "/analytics", "/settings"];
 
@@ -21,7 +19,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Create Supabase server client
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -36,6 +34,8 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet: Array<{name: string, value: string, options?: Record<string, unknown>}>) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options as Record<string, unknown>)
           );
@@ -52,12 +52,10 @@ export async function middleware(request: NextRequest) {
   // Check if accessing protected route without authentication
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
-  const isGuest =
-    request.cookies.get(GUEST_MODE_COOKIE)?.value === "true" &&
-    Boolean(request.cookies.get(GUEST_ID_COOKIE)?.value);
+
 
   // Redirect unauthenticated users accessing protected routes to login
-  if (isProtectedRoute && !user && !isGuest) {
+  if (isProtectedRoute && !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -72,14 +70,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|public).*)",
-  ],
+  matcher: ["/workspace/:path*", "/login", "/signup", "/auth/:path*", "/chat", "/documents", "/analytics", "/settings/:path*"],
 };

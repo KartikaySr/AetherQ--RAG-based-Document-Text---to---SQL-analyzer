@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 type StreamChunk = { content?: string; chunks?: string; error?: string };
 
@@ -35,8 +35,13 @@ function parseSseLine(line: string): StreamChunk | "[DONE]" | Error | null {
 }
 
 export function useStreamMessage() {
+  const activeRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => activeRequest.current?.abort(), []);
   const stream = useCallback(
     async (url: string, body: object, options: StreamOptions) => {
+      activeRequest.current?.abort();
+      const controller = new AbortController();
+      activeRequest.current = controller;
       let terminal = false;
       const complete = () => {
         if (terminal) return;
@@ -59,7 +64,7 @@ export function useStreamMessage() {
         for (const line of lines) {
           if (!line.trim()) continue;
           const parsed = parseSseLine(line);
-          
+
           if (parsed === "[DONE]") {
             completeCalled = true;
             break;
@@ -89,6 +94,7 @@ export function useStreamMessage() {
       try {
         const response = await fetch(url, {
           method: "POST",
+          signal: controller.signal,
           headers: {
             "Content-Type": "application/json",
           },
@@ -128,8 +134,10 @@ export function useStreamMessage() {
           processLines(buffer.split("\n"));
         }
 
-        if (!terminal) complete();
+        if (!terminal) fail(new Error("The response ended early. Please retry."));
+        await reader.cancel();
       } catch (error) {
+        if (controller.signal.aborted) return;
         fail(error instanceof Error ? error : new Error(String(error)));
       }
     },

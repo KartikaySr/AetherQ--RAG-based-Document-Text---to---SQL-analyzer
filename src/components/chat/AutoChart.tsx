@@ -51,7 +51,7 @@ export function AutoChart({ data }: AutoChartProps) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="rounded-xl border border-amber-500/30 bg-black/80 px-4 py-3 shadow-xl backdrop-blur-md">
+        <div className="rounded-xl border border-amber-500/30 bg-[#0f1216]/80 px-4 py-3 shadow-xl backdrop-blur-md">
           <p className="mb-2 text-sm font-semibold text-emerald-400">{label}</p>
           {payload.map((p: any, idx: number) => (
             <p key={idx} className="text-xs text-white">
@@ -66,7 +66,7 @@ export function AutoChart({ data }: AutoChartProps) {
   };
 
   return (
-    <div className="mt-6 mb-2 rounded-2xl border border-emerald-500/20 bg-black/40 p-5 shadow-[inset_0_1px_2px_rgba(251,191,36,0.05),0_4px_12px_rgba(0,0,0,0.5)]">
+    <div className="mt-6 mb-2 rounded-2xl border border-emerald-500/20 bg-[#0f1216]/40 p-5 shadow-[inset_0_1px_2px_rgba(251,191,36,0.05),0_4px_12px_rgba(0,0,0,0.5)]">
       <h4 className="mb-4 text-xs font-semibold uppercase tracking-wider text-emerald-200/60">
         AI Visualized Data
       </h4>
@@ -75,16 +75,16 @@ export function AutoChart({ data }: AutoChartProps) {
           {chartConfig.type === "bar" ? (
             <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#fff" strokeOpacity={0.05} vertical={false} />
-              <XAxis 
-                dataKey={chartConfig.xAxisKey} 
-                stroke="#fff" 
+              <XAxis
+                dataKey={chartConfig.xAxisKey}
+                stroke="#fff"
                 strokeOpacity={0.3}
                 tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
               />
-              <YAxis 
-                stroke="#fff" 
+              <YAxis
+                stroke="#fff"
                 strokeOpacity={0.3}
                 tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                 tickLine={false}
@@ -92,27 +92,27 @@ export function AutoChart({ data }: AutoChartProps) {
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
               {chartConfig.yAxisKeys.map((key, i) => (
-                <Bar 
-                  key={key} 
-                  dataKey={key} 
-                  fill={i === 0 ? "#10B981" : "#F59E0B"} 
-                  radius={[4, 4, 0, 0]} 
+                <Bar
+                  key={key}
+                  dataKey={key}
+                  fill={i === 0 ? "#10B981" : "#F59E0B"}
+                  radius={[4, 4, 0, 0]}
                 />
               ))}
             </BarChart>
           ) : (
             <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#fff" strokeOpacity={0.05} vertical={false} />
-              <XAxis 
-                dataKey={chartConfig.xAxisKey} 
-                stroke="#fff" 
+              <XAxis
+                dataKey={chartConfig.xAxisKey}
+                stroke="#fff"
                 strokeOpacity={0.3}
                 tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
               />
-              <YAxis 
-                stroke="#fff" 
+              <YAxis
+                stroke="#fff"
                 strokeOpacity={0.3}
                 tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
                 tickLine={false}
@@ -120,11 +120,11 @@ export function AutoChart({ data }: AutoChartProps) {
               />
               <Tooltip content={<CustomTooltip />} />
               {chartConfig.yAxisKeys.map((key, i) => (
-                <Line 
-                  key={key} 
+                <Line
+                  key={key}
                   type="monotone"
-                  dataKey={key} 
-                  stroke={i === 0 ? "#10B981" : "#F59E0B"} 
+                  dataKey={key}
+                  stroke={i === 0 ? "#10B981" : "#F59E0B"}
                   strokeWidth={2}
                   dot={{ fill: '#000', stroke: i === 0 ? "#10B981" : "#F59E0B", strokeWidth: 2, r: 4 }}
                   activeDot={{ r: 6, fill: "#F59E0B", stroke: "#000" }}

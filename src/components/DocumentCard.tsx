@@ -204,7 +204,7 @@ export default function DocumentCard({
             : "Processing document..."}
         </div>
 
-        <div className="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4">
+        <div className="mt-5 rounded-2xl border border-white/10 bg-[#0f1216]/30 p-4">
           <p className="mb-2 text-xs uppercase tracking-[0.22em] text-white/35">
             Extracted Preview
           </p>

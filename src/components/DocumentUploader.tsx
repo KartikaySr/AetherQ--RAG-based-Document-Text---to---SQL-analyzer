@@ -28,7 +28,7 @@ type DocumentUploaderProps = {
   onUploaded: (document: UploadedDocument) => void;
 };
 
-const MAX_FILE_SIZE_MB = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_MB ?? "25");
+const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE = Math.max(5, MAX_FILE_SIZE_MB) * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = {
   "application/pdf": [".pdf"],
@@ -116,33 +116,16 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
         return;
       }
 
-      const progressTimer = window.setInterval(() => {
-        setItems((current) =>
-          current.map((item) =>
-            item.id === id && item.status === "uploading"
-              ? {
-                  ...item,
-                  progress: Math.min(item.progress + 12, 88),
-                }
-              : item
-          )
-        );
-      }, 400);
-
       try {
-        updateItem(id, {
-          progress: 94,
-        });
-
         const document = await uploadDocument(file);
 
         updateItem(id, {
           progress: 100,
           status: "success",
-          message: "Processing document intelligence layer...",
+          message: "Indexed and ready for questions.",
         });
-        setNotice(`${file.name} uploaded. Analysis is starting.`);
-        addToast(`"${file.name}" uploaded to secure storage—processing started.`, "success");
+        setNotice(`${file.name} indexed and ready.`);
+        addToast(`"${file.name}" indexed and ready for questions.`, "success");
         onUploaded(document);
       } catch (error) {
         const message =
@@ -156,8 +139,6 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
           message,
         });
         addToast(message, "error");
-      } finally {
-        window.clearInterval(progressTimer);
       }
     },
     [addToast, onUploaded, updateItem]
@@ -209,7 +190,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
           className={`group flex min-h-[300px] cursor-default flex-col items-center justify-center rounded-3xl border border-dashed p-6 text-center transition-all duration-300 md:min-h-[360px] md:p-10 ${
             isDragActive
               ? "border-emerald-300/70 bg-emerald-500/10 shadow-2xl shadow-emerald-500/20"
-              : "border-white/15 bg-black/30 hover:border-emerald-400/40 hover:bg-white/[0.045]"
+              : "border-white/15 bg-[#0f1216]/30 hover:border-emerald-400/40 hover:bg-white/[0.045]"
           }`}
         >
           <input {...getInputProps()} />
@@ -230,13 +211,12 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
           </div>
 
           <h2 className="max-w-2xl text-2xl font-bold leading-tight text-white md:text-4xl">
-            Upload enterprise documents for semantic retrieval.
+            Add context to your workspace.
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
             Drag PDFs, DOCX, and text files here or browse. AetherQ stores them in
-            private Supabase Storage and records metadata for the upcoming RAG
-            pipeline.
+            private storage, extracts their text, and indexes passages for cited answers.
           </p>
 
           <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
@@ -267,7 +247,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
             {items.slice(0, 4).map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl border border-white/10 bg-black/30 p-4"
+                className="rounded-2xl border border-white/10 bg-[#0f1216]/30 p-4"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
@@ -304,7 +284,7 @@ export default function DocumentUploader({ onUploaded }: DocumentUploaderProps) 
                         ? "bg-red-400"
                         : "bg-gradient-to-r from-emerald-400 to-amber-400"
                     }`}
-                    style={{ width: `${item.progress}%` }}
+                    style={{ width: item.status === "uploading" ? "100%" : `${item.progress}%`, opacity: item.status === "uploading" ? 0.35 : 1 }}
                   />
                 </div>
               </div>

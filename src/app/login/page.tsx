@@ -44,7 +44,8 @@ function DotsLoader() {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/workspace";
+  const requestedRedirect = searchParams.get("redirect") || "";
+  const redirect = /^\/workspace(?:\/|$)/.test(requestedRedirect) && !requestedRedirect.includes("\\") ? requestedRedirect : "/workspace";
   const {
     signInWithPassword,
     signInWithOAuth,
@@ -114,7 +115,7 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-emerald-500/30 selection:text-emerald-100">
-      
+
       {/* Background Lights */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -163,16 +164,16 @@ function LoginContent() {
           </div>
 
           <h1 className="text-3xl font-bold text-center mb-1 text-white tracking-tight">
-            AetherQ Vault
+            Welcome to AetherQ
           </h1>
           <p className="text-center text-white/50 text-sm mb-8 font-light">
-            Authenticate to access intelligence.
+            Your documents, data, and AI in one workspace.
           </p>
 
           <form onSubmit={handleAuth} className="space-y-5 mb-8">
             <div className="space-y-1.5">
               <label className="block text-[13px] font-medium text-white/70 ml-1">
-                Enterprise Email
+                Email address
               </label>
               <div className="relative group">
                 <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-emerald-400/50 group-focus-within:text-emerald-400 transition-colors" />
@@ -183,20 +184,20 @@ function LoginContent() {
                   placeholder="name@company.com"
                   required
                   autoComplete="email"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                  className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-[13px] font-medium text-white/70">Vault Key</label>
+                <label className="text-[13px] font-medium text-white/70">Password</label>
                 <button
                   type="button"
                   onClick={() => setShowForgot((v) => !v)}
                   className="text-xs text-emerald-400/80 hover:text-emerald-300 transition-colors"
                 >
-                  Forgot Key?
+                  Forgot password?
                 </button>
               </div>
               <div className="relative group">
@@ -208,13 +209,13 @@ function LoginContent() {
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                  className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
               </div>
             </div>
 
             {showForgot && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm backdrop-blur-md"
@@ -240,9 +241,9 @@ function LoginContent() {
               variant="primary"
               className="w-full mt-2"
             >
-              {isLoading ? <DotsLoader /> : "Authorize Access"}
+              {isLoading ? <DotsLoader /> : "Sign in"}
             </NeoButton>
-            
+
             <div className="relative flex py-2 items-center">
               <div className="flex-grow border-t border-white/10"></div>
               <span className="flex-shrink-0 mx-4 text-white/30 text-xs">or</span>
@@ -277,12 +278,12 @@ function LoginContent() {
           </form>
 
           <p className="text-center text-white/40 text-sm mt-8">
-            No clearance?{" "}
+            New to AetherQ?{" "}
             <Link
               href="/signup"
               className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
             >
-              Request Access
+              Create an account
             </Link>
           </p>
         </GlassCard>
@@ -295,8 +296,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center text-emerald-500 text-sm font-semibold tracking-widest uppercase">
-          Initializing Vault...
+        <div className="min-h-screen bg-[#0f1216] flex items-center justify-center text-emerald-500 text-sm font-semibold tracking-widest uppercase">
+          Opening workspace...
         </div>
       }
     >

@@ -24,7 +24,7 @@ function createWelcomeMessage(): ChatMessageType {
     id: "welcome",
     role: "assistant",
     content:
-      "# Welcome to AetherQ\n\nYour **Mindineers Labs intelligence mesh** orchestrates:\n\n- **AI Chat** — fast Groq reasoning with optional smart routing\n- **Documents** — vault-grounded RAG with citations\n- **SQL Analytics** — audited Text → SQL → results on curated warehouse tables\n\nPick a discipline with the segmented controls below—the stack keeps each path isolated and governed.",
+      "# Welcome to AetherQ\n\nYour workspace connects three layers:\n\n- **AI Chat** — fast Groq reasoning with optional smart routing\n- **Documents** — vault-grounded RAG with citations\n- **SQL Analytics** — Text → SQL → results on curated warehouse tables\n\nPick a discipline with the segmented controls below—each module uses its own data workflow.",
     timestamp: new Date("2026-05-10T12:00:00.000Z"),
   };
 }
@@ -33,7 +33,7 @@ const GENERAL_PROMPTS = [
   "Explain machine learning simply",
   "How can AI help my business?",
   "What is enterprise intelligence?",
-  "Summarize the latest trends",
+  "Help me outline a project brief",
   "Create a data analysis plan",
   "Explain artificial intelligence",
 ];
@@ -89,6 +89,10 @@ function ChatWorkspace() {
   } = useWorkspaceStore();
   const { stream } = useStreamMessage();
   const { addToast } = useToast();
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("conversation");
+    if (id && /^[0-9a-f-]{36}$/i.test(id)) setSelectedConversation(id);
+  }, [setSelectedConversation]);
 
   const [messages, setMessages] = useState<ChatMessageType[]>([
     createWelcomeMessage(),
@@ -102,6 +106,9 @@ function ChatWorkspace() {
   const messagesRef = useRef(messages);
   /** Conversation id used for Supabase persistence (survives first-turn create before store updates). */
   const activeConvRef = useRef<string | null>(null);
+  const loadedConvRef = useRef<string | null>(null);
+  const dispatchingRef = useRef(false);
+  const freshlyCreatedRef = useRef<string | null>(null);
   const streamingExtrasRef = useRef<{
     chunks?: RetrievedChunk[];
     sqlResult?: SqlResultPayload;
@@ -123,18 +130,21 @@ function ChatWorkspace() {
 
   useEffect(() => {
     const id = activeConvRef.current;
-    if (!id || isLoading) return;
+    if (!id || isLoading || id.startsWith("local-") || loadedConvRef.current !== id) return;
     const snapshot = messages;
-    const t = window.setTimeout(() => {
-      void conversationService.replaceAllMessages(id, snapshot);
-    }, 900);
-    return () => window.clearTimeout(t);
-  }, [messages, isLoading]);
+    void conversationService.replaceAllMessages(id, snapshot).then(saved => {
+      if (!saved) addToast("Messages could not be saved. Copy your latest message, then reload to resolve a possible change in another tab.", "error");
+    }).catch(() => addToast("Conversation save failed.", "error"));
+  }, [messages, isLoading, addToast]);
 
   // Load selected conversation from Supabase
   useEffect(() => {
-    if (!selectedConversationId) return;
-    if (selectedConversationId.startsWith("guest-")) return;
+    if (!selectedConversationId) { activeConvRef.current = null; loadedConvRef.current = null; return; }
+    if (selectedConversationId.startsWith("local-") || freshlyCreatedRef.current === selectedConversationId) {
+      loadedConvRef.current = selectedConversationId; freshlyCreatedRef.current = null; return;
+    }
+    let cancelled = false;
+    loadedConvRef.current = null;
 
     const loadConversation = async () => {
       try {
@@ -142,6 +152,7 @@ function ChatWorkspace() {
           selectedConversationId
         );
 
+        if (cancelled) return;
         if (!conversation) {
           addToast("Conversation not found or access denied.", "error");
           setMessages([createWelcomeMessage()]);
@@ -149,6 +160,7 @@ function ChatWorkspace() {
           return;
         }
 
+        loadedConvRef.current = selectedConversationId;
         setMode(conversation.mode);
         if (conversation.messages.length > 0) {
           setMessages(conversation.messages);
@@ -164,6 +176,7 @@ function ChatWorkspace() {
     };
 
     loadConversation();
+    return () => { cancelled = true; };
   }, [selectedConversationId, addToast, setSelectedConversation, setMode]);
 
 
@@ -237,7 +250,7 @@ function ChatWorkspace() {
       let fullResponse = "";
       let sseChunks: RetrievedChunk[] = [];
 
-      const payload: Record<string, string> = { message: trimmed };
+      const payload: Record<string, unknown> = { message: trimmed, history: messagesRef.current.filter(m => m.id !== "welcome").slice(-30).map(m => ({ role: m.role, content: m.content.slice(0, 12000) })) };
       if (enrich?.analyticsContext) {
         payload.analyticsContext = enrich.analyticsContext;
       }
@@ -547,7 +560,10 @@ function ChatWorkspace() {
 
   const dispatchUserTurn = useCallback(
     async (messageText: string, skipUserEcho = false) => {
-      if (!messageText.trim()) return;
+      if (!messageText.trim() || dispatchingRef.current) return;
+      if (selectedConversationId && loadedConvRef.current !== selectedConversationId) { addToast("Wait for this conversation to load.", "info"); return; }
+      dispatchingRef.current = true;
+      try {
       const trimmed = messageText.trim();
 
       let convId = selectedConversationId;
@@ -559,6 +575,8 @@ function ChatWorkspace() {
           const fallbackId = `local-${Date.now()}-${crypto.randomUUID()}`;
           convId = fallbackId;
           activeConvRef.current = convId;
+          freshlyCreatedRef.current = convId;
+          loadedConvRef.current = convId;
           setSelectedConversation(convId);
           addToast(
             "Saved conversations are unavailable right now, so this chat is continuing temporarily.",
@@ -567,6 +585,8 @@ function ChatWorkspace() {
         } else {
           convId = created.id;
           activeConvRef.current = convId;
+          freshlyCreatedRef.current = convId;
+          loadedConvRef.current = convId;
           setSelectedConversation(convId);
         }
       } else {
@@ -645,6 +665,8 @@ function ChatWorkspace() {
       }
 
       await streamGroqChat(trimmed, skipUserEcho);
+      } catch { addToast("The request failed. Please retry.", "error"); }
+      finally { dispatchingRef.current = false; setIsLoading(false); }
     },
     [
       addToast,
@@ -673,7 +695,7 @@ function ChatWorkspace() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      
+
       const response = await fetch("/api/documents/upload", {
         method: "POST",
         body: formData,
@@ -686,7 +708,7 @@ function ChatWorkspace() {
       const { document } = await response.json() as { document: UploadedDocument };
       setDocuments(prev => [document, ...prev]);
       setSelectedDocumentId(document.id);
-      
+
       setMode("documents");
       addToast("Document uploaded! It is now being processed for semantic search.", "success");
     } catch (error) {
@@ -702,7 +724,7 @@ function ChatWorkspace() {
     if (pendingGlobalPrompt && !isLoading) {
       const promptToRun = pendingGlobalPrompt;
       setPendingGlobalPrompt(null);
-      
+
       // Delay slightly to ensure UI is ready
       setTimeout(() => {
         void dispatchUserTurn(promptToRun, false);
@@ -748,15 +770,15 @@ function ChatWorkspace() {
     mode === "documents"
       ? "Searching enterprise knowledge..."
       : mode === "analytics"
-        ? "Compiling audited warehouse metrics..."
+        ? "Querying the warehouse..."
         : "Synthesizing enterprise context…";
 
   const showingWelcomeSplash =
     messages.length === 1 && !isLoading && streamingContent === "";
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden overscroll-none bg-black text-white">
-      <ChatSidebar />
+    <div className="flex h-[calc(100dvh-56px)] lg:h-[100dvh] overflow-hidden overscroll-none bg-[#0f1216] text-white">
+      <ChatSidebar busy={isLoading} />
 
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:pb-0">
         <div className="pointer-events-none absolute inset-0">
@@ -764,27 +786,19 @@ function ChatWorkspace() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#222_1px,transparent_1px),linear-gradient(to_bottom,#222_1px,transparent_1px)] bg-[size:60px_60px] opacity-5" />
         </div>
 
-        <header className="relative z-10 flex items-center justify-between border-b border-[#D4AF37]/10 bg-black/60 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl md:px-6 md:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <header className="relative z-10 flex items-center justify-between border-b border-[#b9edb0]/10 bg-[#0f1216]/60 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl md:px-6 md:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <h1 className="truncate text-xl font-serif font-bold md:text-2xl luxury-text-gradient">AetherQ</h1>
-            <span className="inline-block max-w-[260px] shrink-0 truncate rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#D4AF37] sm:max-w-none">
+            <h1 className="truncate text-xl font-sans font-bold md:text-2xl luxury-text-gradient">AetherQ</h1>
+            <span className="inline-block max-w-[260px] shrink-0 truncate rounded-full border border-[#b9edb0]/20 bg-[#b9edb0]/5 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-bold text-[#b9edb0] sm:max-w-none">
               {badgeLabel}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/[0.02]">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#E6C875] animate-pulse shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
-                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]/80">Core Online</span>
-              </div>
-              <div className="w-[1px] h-3 bg-[#D4AF37]/20" />
-              <span className="text-[10px] font-mono text-[#D4AF37]/50">12ms</span>
-            </div>
             <button
               type="button"
               onClick={handleClearChat}
               disabled={messages.length <= 1 || isLoading}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#D4AF37]/10 bg-white/5 px-2.5 py-1.5 text-[11px] text-white/60 transition hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/30 hover:text-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#b9edb0]/10 bg-white/5 px-2.5 py-1.5 text-[11px] text-white/60 transition hover:bg-[#b9edb0]/10 hover:border-[#b9edb0]/30 hover:text-[#b9edb0] disabled:cursor-not-allowed disabled:opacity-50"
               title="Clear current chat"
             >
               <Trash2 size={14} />
@@ -819,21 +833,21 @@ function ChatWorkspace() {
                       icon: "📊",
                       title: "SQL Analytics",
                       description:
-                        "Guarded Text-to-SQL with validation, audit logging, and tabular results.",
+                        "Read-only Text-to-SQL with validation, timeouts, and tabular results.",
                     },
                     {
                       icon: "🛡️",
                       title: "Governed stack",
                       description:
-                        "Each path uses production-safe APIs without exposing warehouse credentials client-side.",
+                        "Authenticated APIs keep documents private and warehouse credentials on the server.",
                     },
                   ].map((feature) => (
                     <div
                       key={feature.title}
-                      className="rounded-2xl border border-[#D4AF37]/10 bg-black/40 p-6 transition hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] backdrop-blur-sm"
+                      className="rounded-2xl border border-[#b9edb0]/10 bg-[#0f1216]/40 p-6 transition hover:border-[#b9edb0]/30 hover:bg-[#b9edb0]/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] backdrop-blur-sm"
                     >
                       <div className="mb-3 text-3xl opacity-80 grayscale">{feature.icon}</div>
-                      <h3 className="mb-2 text-base font-serif font-bold text-[#E6C875]">
+                      <h3 className="mb-2 text-base font-sans font-bold text-[#E6C875]">
                         {feature.title}
                       </h3>
                       <p className="text-[13px] leading-relaxed text-white/50">

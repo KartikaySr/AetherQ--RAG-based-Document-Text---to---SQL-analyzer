@@ -1,114 +1,37 @@
-import { NextResponse } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { enforceQuota } from "@/lib/server/quota";
 import { createGroq } from "@ai-sdk/groq";
 import { generateText } from "ai";
-import { Client } from "pg";
-
-export const maxDuration = 60; // Max duration for edge/serverless functions
-
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
+import { authenticatedClient } from "@/lib/server/auth";
+import { canUseWarehouse, readWarehouse } from "@/lib/server/warehouse";
+export const maxDuration = 60;
+const schema = `public.departments(id uuid, name text, cost_center text, head_count_budget int, office_location text)
+public.employees(id uuid, name text, role text, salary numeric, department_id uuid, location text, joining_date date, email text)
+public.sales(id uuid, region text, revenue numeric, product text, quarter text, sales_rep text, units_sold int, deal_date date)
+public.logistics(id uuid, shipment_ref text, origin_warehouse text, destination_region text, freight_cost_usd numeric, carrier text, eta_days int, status text, departure_date date)
+public.inventory(id uuid, product_name text, sku text, stock int, warehouse text, reorder_level int, unit_cost_usd numeric, last_restock_at date)`;
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: "", ...options });
-          },
-        },
-      }
-    );
-
-    const { data: { session } } = await supabase.auth.getSession();
-    // Allow guest mode
-
+    const { supabase, user } = await authenticatedClient();
+    if (!user) return Response.json({ error: "Sign in to continue." }, { status: 401 });
+    const quotaResponse = await enforceQuota(supabase);
+    if (quotaResponse) return quotaResponse;
+    if (!canUseWarehouse(user)) return Response.json({ error: "Your account has not been granted warehouse access." }, { status: 403 });
+    if (!process.env.ANALYTICS_DATABASE_URL) return Response.json({ error: "Analytics connection is not configured." }, { status: 503 });
     const { query } = await req.json();
-
-    if (!query) {
-      return NextResponse.json({ error: "Missing query" }, { status: 400 });
-    }
-
-    // Attempt to connect to PG and fetch schema, or use a default one
-    const schemaStr = `
-Table: public.employees
-Columns: id (uuid), name (text), department (text), salary (numeric), hire_date (date)
-
-Table: public.sales
-Columns: id (uuid), region (text), revenue (numeric), created_at (timestamp)
-
-Table: public.carriers
-Columns: id (uuid), name (text), freight_cost (numeric)
-`;
-
-    // Generate SQL using Groq
-    const systemPrompt = `You are a Postgres SQL generator. 
-Given the user's question, generate a valid SQL query against the following schema:
-${schemaStr}
-
-Return ONLY the raw SQL query. Do not wrap it in markdown. Do not provide any explanation. Just the SQL.`;
-
-    const { text: generatedSql } = await generateText({
-      model: groq("openai/gpt-oss-20b"),
-      system: systemPrompt,
-      prompt: query,
+    if (typeof query !== "string" || !query.trim() || query.length > 4000) return Response.json({ error: "Provide a question of 1–4,000 characters." }, { status: 400 });
+    const { text } = await generateText({
+      model: createGroq({ apiKey: process.env.GROQ_API_KEY })(process.env.GROQ_CHAT_MODEL || "openai/gpt-oss-20b"),
+      system: `Generate one PostgreSQL SELECT using only this schema. No CTEs, comments, DML, system tables, or custom functions. Return raw SQL only. Schema:\n${schema}`,
+      prompt: query, abortSignal: req.signal,
     });
-
-    const cleanSql = generatedSql.replace(/\`\`\`sql/g, "").replace(/\`\`\`/g, "").trim();
-
-    // Now attempt to run the SQL using pg client
-    let rows: any[] = [];
-    let explanation = `### Generated SQL Query\n\`\`\`sql\n${cleanSql}\n\`\`\`\n\n`;
-
-    try {
-      if (process.env.DATABASE_URL) {
-        const client = new Client({ connectionString: process.env.DATABASE_URL });
-        await client.connect();
-        const res = await client.query(cleanSql);
-        rows = res.rows;
-        await client.end();
-        
-        explanation += `### Query Results\n`;
-        if (rows.length > 0) {
-          const keys = Object.keys(rows[0]);
-          explanation += `| ${keys.join(" | ")} |\n`;
-          explanation += `| ${keys.map(() => "---").join(" | ")} |\n`;
-          rows.forEach(row => {
-            explanation += `| ${keys.map(k => String(row[k])).join(" | ")} |\n`;
-          });
-        } else {
-          explanation += `*No rows returned.*\n`;
-        }
-      } else {
-        explanation += `> **Note:** No DATABASE_URL provided, so live results could not be fetched.`;
-      }
-    } catch (pgError: any) {
-      console.error("PG Execution Error:", pgError);
-      explanation += `> **Error:** I couldn't run this query successfully. \`${pgError.message}\``;
-    }
-
-    return NextResponse.json({
-      sql: cleanSql,
-      rows: rows,
-      explanation: explanation,
-    });
-  } catch (error: any) {
-    console.error("SQL API Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to process SQL analytics" },
-      { status: 500 }
-    );
+    const sql = text.replace(/^```(?:sql)?\s*|\s*```$/g, "").trim();
+    const rows = await readWarehouse(sql);
+    const cell = (v: unknown) => String(v ?? "").replace(/\|/g, "\\|").replace(/[\r\n]/g, " ");
+    const keys = rows.length ? Object.keys(rows[0]) : [];
+    const table = keys.length ? `| ${keys.map(cell).join(" | ")} |\n| ${keys.map(() => "---").join(" | ")} |\n${rows.map(row => `| ${keys.map(k => cell(row[k])).join(" | ")} |`).join("\n")}` : "No matching rows.";
+    return Response.json({ sql, rows, explanation: `### SQL\n\`\`\`sql\n${sql}\n\`\`\`\n\n${table}\n\nResults are limited to 200 rows.`, rowLimit: 200 });
+  } catch (error) {
+    console.error("Analytics query rejected", error);
+    return Response.json({ error: "The query could not be safely completed. Try a simpler question or check the analytics connection." }, { status: 422 });
   }
 }

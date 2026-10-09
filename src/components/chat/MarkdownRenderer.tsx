@@ -3,8 +3,8 @@
 import type { ComponentPropsWithoutRef } from "react";
 import type { ExtraProps } from "react-markdown";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import dynamic from "next/dynamic";
+const CodeBlock = dynamic(() => import("./CodeBlock"));
 import remarkGfm from "remark-gfm";
 
 type MarkdownCodeProps = ComponentPropsWithoutRef<"code"> &
@@ -85,7 +85,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
         code: (props: any) => {
           const { children, className, node, ...rest } = props;
           const match = /language-(\w+)/.exec(className || "");
-          
+
           // In react-markdown v9+, inline is no longer passed as a boolean.
           // We check if there's no language match and no newlines to assume it's inline.
           const isInline = !match && !String(children).includes('\n');
@@ -101,21 +101,8 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           const language = match ? match[1] : "text";
 
           return (
-            <div className="mb-4 overflow-x-auto rounded-xl border border-white/10 bg-black/50">
-              <SyntaxHighlighter
-                {...rest}
-                language={language}
-                style={atomDark}
-                PreTag="div"
-                customStyle={{
-                  padding: "1rem",
-                  margin: 0,
-                  backgroundColor: "transparent",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {String(children).replace(/\n$/, "")}
-              </SyntaxHighlighter>
+            <div className="mb-4 overflow-x-auto rounded-xl border border-white/10 bg-[#0f1216]/50">
+              <CodeBlock language={language}>{String(children).replace(/\n$/, "")}</CodeBlock>
             </div>
           );
         },

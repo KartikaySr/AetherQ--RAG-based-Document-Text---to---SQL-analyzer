@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  Mail, Lock, ArrowRight, Loader2, Code2, 
-  User, Building, Users, Briefcase, Shield, Zap, Sparkles 
+import {
+  Mail, Lock, ArrowRight, Loader2, Code2,
+  User, Building, Users, Briefcase, Shield, Zap, Sparkles
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -112,7 +112,7 @@ function SignUpContent() {
       }
 
       await signUp(email, password, metadata);
-      addToast("Account created! Welcome to AetherQ.", "success");
+      addToast("Check your email to confirm your account, then sign in.", "success");
       router.push("/login");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sign up failed";
@@ -138,7 +138,7 @@ function SignUpContent() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-emerald-500/30 selection:text-emerald-100 overflow-x-hidden pt-12 pb-12">
-      
+
       {/* Background Lights */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -197,7 +197,7 @@ function SignUpContent() {
                       className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border transition-all ${
                         isActive
                           ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[inset_0_0_15px_rgba(16,185,129,0.1)]"
-                          : "bg-black/40 border-white/10 text-white/50 hover:bg-white/5"
+                          : "bg-[#0f1216]/40 border-white/10 text-white/50 hover:bg-white/5"
                       }`}
                     >
                       <Icon className={`w-5 h-5 ${isActive ? "opacity-100" : "opacity-50"}`} />
@@ -216,7 +216,7 @@ function SignUpContent() {
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Jane Doe"
                   required
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                  className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
               </InputWrapper>
 
@@ -235,7 +235,7 @@ function SignUpContent() {
                         onChange={(e) => setCompanyName(e.target.value)}
                         placeholder="Acme Corp"
                         required
-                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                        className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                       />
                     </InputWrapper>
 
@@ -245,7 +245,7 @@ function SignUpContent() {
                           value={teamSize}
                           onChange={(e) => setTeamSize(e.target.value)}
                           required
-                          className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner appearance-none"
+                          className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner appearance-none"
                         >
                           <option value="" disabled className="bg-[#051A11]">Select team size...</option>
                           <option value="1-10" className="bg-[#051A11]">1 - 10 employees</option>
@@ -263,7 +263,7 @@ function SignUpContent() {
                           onChange={(e) => setJobTitle(e.target.value)}
                           placeholder="e.g. Director of FP&A"
                           required
-                          className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                          className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                         />
                       </InputWrapper>
                     )}
@@ -279,13 +279,13 @@ function SignUpContent() {
                   placeholder="name@company.com"
                   required
                   autoComplete="email"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                  className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
               </InputWrapper>
 
               <div className="space-y-1.5">
                 <label className="block text-[13px] font-medium text-white/70 ml-1">
-                  Vault Key (Password)
+                  Password
                 </label>
                 <div className="relative group">
                   <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-emerald-400/50 group-focus-within:text-emerald-400 transition-colors" />
@@ -297,7 +297,7 @@ function SignUpContent() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                    className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                   />
                 </div>
                 {password.length > 0 && (
@@ -316,7 +316,7 @@ function SignUpContent() {
                 )}
               </div>
 
-              <InputWrapper label="Confirm Vault Key" icon={Lock}>
+              <InputWrapper label="Confirm password" icon={Lock}>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -324,7 +324,7 @@ function SignUpContent() {
                   placeholder="••••••••"
                   required
                   autoComplete="new-password"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
+                  className="w-full bg-[#0f1216]/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-inner"
                 />
               </InputWrapper>
             </div>
@@ -340,7 +340,7 @@ function SignUpContent() {
           </form>
 
           <p className="text-center text-white/40 text-sm mt-8">
-            Already have clearance?{" "}
+            Already have an account?{" "}
             <Link
               href="/login"
               className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
@@ -358,7 +358,7 @@ export default function SignUpPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center text-emerald-500 text-sm font-semibold tracking-widest uppercase">
+        <div className="min-h-screen bg-[#0f1216] flex items-center justify-center text-emerald-500 text-sm font-semibold tracking-widest uppercase">
           Initializing Protocol...
         </div>
       }

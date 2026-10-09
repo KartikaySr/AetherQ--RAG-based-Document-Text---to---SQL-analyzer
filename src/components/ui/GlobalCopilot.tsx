@@ -22,7 +22,7 @@ const GLOBAL_COMMANDS: SearchResult[] = [
   { id: "nav-chat", title: "AetherQ Intelligence", subtitle: "Start a new conversation", type: "navigate", icon: MessageSquare, href: "/workspace/chat" },
   { id: "nav-term", title: "Multi-Agent Terminal", subtitle: "System Operations", type: "navigate", icon: Terminal, href: "/workspace/terminal" },
   { id: "nav-set", title: "System Preferences", type: "navigate", icon: Settings, href: "/workspace/settings" },
-  
+
   { id: "doc-1", title: "Q3 Financial Projections.pdf", subtitle: "Last edited 2h ago", type: "document", icon: FileText },
   { id: "doc-2", title: "Enterprise Architecture Review.docx", subtitle: "Last edited yesterday", type: "document", icon: FileText },
   { id: "doc-3", title: "Global Expansion Strategy", subtitle: "Active Node", type: "document", icon: FileText },
@@ -72,7 +72,7 @@ export function GlobalCopilot() {
     if (!input.trim()) return GLOBAL_COMMANDS.slice(0, 4); // Default to navs
     const query = input.toLowerCase();
     const results = GLOBAL_COMMANDS.filter(c => c.title.toLowerCase().includes(query) || c.subtitle?.toLowerCase().includes(query));
-    
+
     // Always append the AI fallback action
     results.push({
       id: "ai-fallback",
@@ -81,7 +81,7 @@ export function GlobalCopilot() {
       type: "ai",
       icon: Sparkles
     });
-    
+
     return results;
   }, [input]);
 
@@ -101,7 +101,7 @@ export function GlobalCopilot() {
 
   const executeResult = (result: SearchResult) => {
     if (!result) return;
-    
+
     if (result.type === "ai") {
       setPendingGlobalPrompt(input.trim());
       router.push("/workspace/chat");
@@ -114,7 +114,7 @@ export function GlobalCopilot() {
       setPendingGlobalPrompt(`Analyze ${result.title} and provide a summary of key points.`);
       router.push("/workspace/chat");
     }
-    
+
     setCopilotOpen(false);
     setCopilotContext(null);
     setInput("");
@@ -134,7 +134,7 @@ export function GlobalCopilot() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 bg-[#0f1216]/80 backdrop-blur-md"
           />
           <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] pointer-events-none">
             <motion.div
@@ -144,14 +144,14 @@ export function GlobalCopilot() {
               transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="w-full max-w-3xl px-4 pointer-events-auto"
             >
-              <div className="relative overflow-hidden rounded-[32px] bg-[#030604] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] border border-[#D4AF37]/30 backdrop-blur-3xl">
-                
+              <div className="relative overflow-hidden rounded-[32px] bg-[#030604] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] border border-[#b9edb0]/30 backdrop-blur-3xl">
+
                 {/* Ultra Luxury Shimmer */}
                 <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.05),transparent_70%),radial-gradient(ellipse_at_bottom,rgba(0,96,57,0.1),transparent_70%)]" />
 
-                <div className="relative border-b border-[#D4AF37]/10 p-2">
+                <div className="relative border-b border-[#b9edb0]/10 p-2">
                   <div className="flex items-center gap-4 px-6 py-5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#006039,#D4AF37)] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(212,175,55,0.2)] border border-[#D4AF37]/40">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#006039,#b9edb0)] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(212,175,55,0.2)] border border-[#b9edb0]/40">
                       <Search size={20} className="text-white" />
                     </div>
                     <input
@@ -163,16 +163,16 @@ export function GlobalCopilot() {
                       }}
                       onKeyDown={handleKeyDown}
                       placeholder="Search files, navigate, or ask AetherQ..."
-                      className="flex-1 bg-transparent text-2xl font-serif text-[#E5E4E2] placeholder-white/20 outline-none tracking-tight"
+                      className="flex-1 bg-transparent text-2xl font-sans text-[#E5E4E2] placeholder-white/20 outline-none tracking-tight"
                     />
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={isListening ? stopListening : startListening}
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 border border-[#D4AF37]/10 ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 border border-[#b9edb0]/10 ${
                           isListening
                             ? "bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-pulse"
-                            : "bg-white/5 text-[#D4AF37]/50 hover:border-[#D4AF37]/40 hover:text-[#D4AF37]"
+                            : "bg-white/5 text-[#b9edb0]/50 hover:border-[#b9edb0]/40 hover:text-[#b9edb0]"
                         }`}
                       >
                         <Mic size={18} className={isListening ? "animate-bounce" : ""} />
@@ -180,7 +180,7 @@ export function GlobalCopilot() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Search Results */}
                 <div className="max-h-[50vh] overflow-y-auto p-4 custom-scrollbar">
                   {filteredResults.length > 0 ? (
@@ -194,14 +194,14 @@ export function GlobalCopilot() {
                             onMouseEnter={() => setSelectedIndex(idx)}
                             onClick={() => executeResult(result)}
                             className={`flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all duration-200 ${
-                              isSelected 
-                                ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" 
+                              isSelected
+                                ? "bg-[#b9edb0]/10 border border-[#b9edb0]/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
                                 : "bg-transparent border border-transparent hover:bg-white/5"
                             }`}
                           >
                             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
                               isSelected
-                                ? (result.type === 'ai' ? 'bg-[#D4AF37] text-[#030604]' : 'bg-[#006039] text-[#D4AF37]')
+                                ? (result.type === 'ai' ? 'bg-[#b9edb0] text-[#030604]' : 'bg-[#006039] text-[#b9edb0]')
                                 : 'bg-white/5 text-white/40'
                             }`}>
                               <Icon size={18} className={result.type === 'ai' && isSelected ? 'animate-pulse' : ''} />
@@ -211,13 +211,13 @@ export function GlobalCopilot() {
                                 {result.title}
                               </span>
                               {result.subtitle && (
-                                <span className={`text-xs truncate ${isSelected ? 'text-[#D4AF37]/80' : 'text-white/40'}`}>
+                                <span className={`text-xs truncate ${isSelected ? 'text-[#b9edb0]/80' : 'text-white/40'}`}>
                                   {result.subtitle}
                                 </span>
                               )}
                             </div>
                             {isSelected && (
-                              <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#D4AF37]/50">
+                              <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#b9edb0]/50">
                                 <span>Press Enter</span>
                                 <ArrowRight size={12} />
                               </div>
@@ -235,13 +235,13 @@ export function GlobalCopilot() {
                 </div>
 
                 {/* Footer hints */}
-                <div className="border-t border-[#D4AF37]/10 bg-black/40 px-6 py-3 flex items-center justify-between">
+                <div className="border-t border-[#b9edb0]/10 bg-[#0f1216]/40 px-6 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-4 text-[10px] font-medium text-white/40">
                     <span className="flex items-center gap-1"><kbd className="bg-white/10 px-1.5 py-0.5 rounded">↑</kbd><kbd className="bg-white/10 px-1.5 py-0.5 rounded">↓</kbd> to navigate</span>
                     <span className="flex items-center gap-1"><kbd className="bg-white/10 px-1.5 py-0.5 rounded">↵</kbd> to execute</span>
                     <span className="flex items-center gap-1"><kbd className="bg-white/10 px-1.5 py-0.5 rounded">esc</kbd> to close</span>
                   </div>
-                  <div className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#D4AF37]/30">
+                  <div className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#b9edb0]/30">
                     AetherQ Global Search
                   </div>
                 </div>

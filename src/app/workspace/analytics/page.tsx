@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
   const [kpis, setKpis] = useState<Kpis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
 
   const [showApiModal, setShowApiModal] = useState(false);
 
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
     }).format(n);
 
   return (
-    <div className="min-h-[100dvh] bg-black pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
+    <div className="min-h-[100dvh] bg-[#0f1216] pb-[max(2rem,env(safe-area-inset-bottom))] text-white">
 
       <div className="pointer-events-none fixed inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#333_1px,transparent_1px),linear-gradient(to_bottom,#333_1px,transparent_1px)] bg-[size:48px_48px]" />
 
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
           <div>
             <Link
               href="/workspace"
-              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[#D4AF37]/80 transition hover:text-[#D4AF37]"
+              className="mb-4 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[#b9edb0]/80 transition hover:text-[#b9edb0]"
             >
               <ArrowLeft size={14} />
               Back to workspace
@@ -146,9 +146,9 @@ export default function AnalyticsPage() {
               Enterprise Analytics
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base">
-              Live KPIs and mock-style visualizations powered by the same
+              Warehouse KPIs and visualizations powered by the same
               warehouse tables that feed AetherQ SQL mode. Configure{" "}
-              <code className="rounded bg-white/5 border border-[#1F1F1F] px-1.5 py-0.5 text-[11px] text-[#D4AF37]">
+              <code className="rounded bg-white/5 border border-[#293039] px-1.5 py-0.5 text-[11px] text-[#b9edb0]">
                 DATABASE_URL
               </code>{" "}
               for production-grade insights.
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
 
             <button
               onClick={() => setShowApiModal(true)}
-              className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-[#141414] px-5 py-3 text-sm font-medium text-[#D4AF37] transition hover:bg-[#1F1F1F]"
+              className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-[#1c2229] px-5 py-3 text-sm font-medium text-[#b9edb0] transition hover:bg-[#293039]"
             >
               <Code size={16} />
               Deploy as API
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
             </Link>
             <Link
               href="/workspace/chat"
-              className="rounded-2xl bg-[#D4AF37] px-5 py-3 text-sm font-semibold text-black shadow-lg transition hover:bg-[#E6C875]"
+              className="rounded-2xl bg-[#b9edb0] px-5 py-3 text-sm font-semibold text-black shadow-lg transition hover:bg-[#E6C875]"
             >
               Open AI Chat
             </Link>
@@ -196,13 +196,7 @@ export default function AnalyticsPage() {
           </div>
         ) : !kpis ? (
           <div className="rounded-3xl border border-amber-400/25 bg-amber-500/10 p-6 text-sm text-amber-50">
-            Analytics summary is empty. Add{" "}
-            <code className="rounded bg-black/30 px-1">DATABASE_URL</code> and
-            run{" "}
-            <code className="rounded bg-black/30 px-1">
-              supabase-enterprise-schema.sql
-            </code>{" "}
-            to hydrate metrics.
+            No warehouse metrics are available. Ask your workspace administrator to check the analytics connection.
           </div>
         ) : (
           <>
@@ -230,7 +224,7 @@ export default function AnalyticsPage() {
               <KpiCard
                 title="Booked revenue (all periods)"
                 value={formatCurrency(Number(kpis.totalRevenue))}
-                subtitle="Synthetic enterprise ledger feed"
+                subtitle="Warehouse sales records"
                 icon={<TrendingUp size={22} />}
                 delay={0}
               />
@@ -343,7 +337,7 @@ export default function AnalyticsPage() {
 
             <motion.div
               layout
-              className="mt-6 rounded-3xl border border-white/10 bg-black/35 p-5 shadow-inner shadow-black/40 backdrop-blur-2xl md:p-8"
+              className="mt-6 rounded-3xl border border-white/10 bg-[#0f1216]/35 p-5 shadow-inner shadow-black/40 backdrop-blur-2xl md:p-8"
             >
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -374,8 +368,8 @@ export default function AnalyticsPage() {
 
 
       {showApiModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4 py-6">
-          <motion.div 
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f1216]/80 backdrop-blur-md px-4 py-6">
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="w-full max-w-2xl overflow-hidden rounded-3xl border border-purple-500/30 bg-[#071119] shadow-[0_0_50px_rgba(168,85,247,0.1)]"
@@ -398,7 +392,7 @@ export default function AnalyticsPage() {
                 <p className="text-sm text-white/70 mb-2">Your API endpoint is now live. Use this curl command to fetch the current dashboard metrics securely from external systems.</p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-black/60 p-5 font-mono text-xs text-emerald-400 overflow-x-auto relative group/curl">
+              <div className="rounded-xl border border-white/10 bg-[#0f1216]/60 p-5 font-mono text-xs text-emerald-400 overflow-x-auto relative group/curl">
                 <div className="absolute top-3 right-3 opacity-0 group-hover/curl:opacity-100 transition">
                   <span className="bg-white/10 px-2 py-1 rounded text-white/50 cursor-pointer hover:text-white">Copy</span>
                 </div>
