@@ -18,6 +18,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(legacyTarget, request.url));
   }
 
+  // The public landing page never needs an authenticated redirect or session refresh.
+  // Avoid making its response wait for a remote auth lookup.
+  if (pathname === "/") return NextResponse.next();
+
   // Create Supabase server client
   let response = NextResponse.next({
     request: {
