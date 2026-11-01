@@ -1,17 +1,16 @@
-import { env, pipeline, type FeatureExtractionPipeline } from "@huggingface/transformers";
+import type { FeatureExtractionPipeline } from "@huggingface/transformers";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// Keep the same 384-dimensional MiniLM embedding space for uploads and queries.
-// A writable cache avoids downloading weights again after each request.
-env.cacheDir = process.env.EMBEDDING_CACHE_DIR || join(tmpdir(), "aetherq-models");
-env.allowLocalModels = false;
+// Load native inference inside the request so initialization failures are handled.
 let extractor: Promise<FeatureExtractionPipeline> | undefined;
 function getExtractor() {
-  extractor ??= pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", { dtype: "fp32" }).catch(error => {
-    extractor = undefined;
-    throw error;
-  });
+  extractor ??= (async () => {
+    const { env, pipeline } = await import("@huggingface/transformers");
+    env.cacheDir = process.env.EMBEDDING_CACHE_DIR || join(tmpdir(), "aetherq-models");
+    env.allowLocalModels = false;
+    return pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", { dtype: "fp32" });
+  })().catch(error => { extractor = undefined; throw error; });
   return extractor;
 }
 export async function embedTexts(texts: string[]): Promise<number[][]> {

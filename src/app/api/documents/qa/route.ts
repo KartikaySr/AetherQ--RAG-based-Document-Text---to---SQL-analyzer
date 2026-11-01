@@ -1,3 +1,4 @@
+import { publicAiError } from "@/lib/server/ai-errors";
 import { enforceQuota } from "@/lib/server/quota";
 import { authenticatedClient } from "@/lib/server/auth";
 import { createGroq } from "@ai-sdk/groq";
@@ -79,16 +80,23 @@ ${contextStr}`;
             controller.enqueue(new TextEncoder().encode(`data: ${chunksData}\n\n`));
           }
 
-          for await (const chunk of result.textStream) {
+          let receivedText = false;
+          for await (const part of result.fullStream) {
+            if (part.type === "error") throw part.error;
+            if (part.type !== "text-delta") continue;
+            const chunk = part.text;
             if (chunk) {
+              receivedText = true;
               const data = JSON.stringify({ content: chunk });
               controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
             }
           }
+          if (!receivedText) throw new Error("Model returned no answer");
           controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
           controller.close();
         } catch (err: any) {
-          const errorData = JSON.stringify({ error: "The document response failed. Please retry." });
+          console.error("AI stream failed", { status: err?.statusCode, message: err?.message });
+          const errorData = JSON.stringify({ error: publicAiError(err) });
           controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
           controller.close();
         }

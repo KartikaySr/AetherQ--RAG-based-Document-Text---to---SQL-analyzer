@@ -3,8 +3,8 @@ import { enforceQuota } from "@/lib/server/quota";
 import { authenticatedClient } from "@/lib/server/auth";
 import { NextResponse } from "next/server";
 import { embedTexts } from "@/lib/server/embeddings";
-import pdf from "pdf-parse";
-import mammoth from "mammoth";
+
+
 
 export const maxDuration = 300; // Increase timeout for processing if possible
 
@@ -85,6 +85,7 @@ export async function POST(request: Request) {
     let extractedText = "";
     if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
       try {
+        const { default: pdf } = await import("pdf-parse");
         const pdfPromise = pdf(buffer);
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("PDF parsing timed out")), 10000));
 
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       file.name.toLowerCase().endsWith(".docx")
     ) {
+      const mammoth = await import("mammoth");
       const result = await mammoth.extractRawText({ buffer });
       extractedText = result.value;
     } else {
