@@ -3,6 +3,7 @@ import { enforceQuota } from "@/lib/server/quota";
 import { authenticatedClient } from "@/lib/server/auth";
 import { NextResponse } from "next/server";
 import { embedTexts } from "@/lib/server/embeddings";
+import { extractPdfText } from "@/lib/server/pdf-text";
 
 
 
@@ -85,12 +86,7 @@ export async function POST(request: Request) {
     let extractedText = "";
     if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
       try {
-        const { default: pdf } = await import("pdf-parse");
-        const pdfPromise = pdf(buffer);
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("PDF parsing timed out")), 10000));
-
-        const pdfData = await Promise.race([pdfPromise, timeoutPromise]) as any;
-        extractedText = pdfData.text;
+        extractedText = await extractPdfText(buffer);
       } catch (err: any) {
         console.error("PDF extraction failed:", err);
         throw new Error(`Failed to extract text from PDF: ${err.message}`);
