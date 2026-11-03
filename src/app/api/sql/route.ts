@@ -2,7 +2,7 @@ import { enforceQuota } from "@/lib/server/quota";
 import { createGroq } from "@ai-sdk/groq";
 import { generateText } from "ai";
 import { authenticatedClient } from "@/lib/server/auth";
-import { canUseWarehouse, readWarehouse } from "@/lib/server/warehouse";
+import { canUseWarehouse, readWarehouse, warehouseConnectionString } from "@/lib/server/warehouse";
 export const maxDuration = 60;
 const schema = `public.departments(id uuid, name text, cost_center text, head_count_budget int, office_location text)
 public.employees(id uuid, name text, role text, salary numeric, department_id uuid, location text, joining_date date, email text)
@@ -13,10 +13,10 @@ export async function POST(req: Request) {
   try {
     const { supabase, user } = await authenticatedClient();
     if (!user) return Response.json({ error: "Sign in to continue." }, { status: 401 });
+    if (!canUseWarehouse(user)) return Response.json({ error: "Your account has not been granted warehouse access." }, { status: 403 });
     const quotaResponse = await enforceQuota(supabase);
     if (quotaResponse) return quotaResponse;
-    if (!canUseWarehouse(user)) return Response.json({ error: "Your account has not been granted warehouse access." }, { status: 403 });
-    if (!process.env.ANALYTICS_DATABASE_URL) return Response.json({ error: "Analytics connection is not configured." }, { status: 503 });
+    if (!warehouseConnectionString()) return Response.json({ error: "Analytics connection is not configured." }, { status: 503 });
     const { query } = await req.json();
     if (typeof query !== "string" || !query.trim() || query.length > 4000) return Response.json({ error: "Provide a question of 1–4,000 characters." }, { status: 400 });
     const { text } = await generateText({
