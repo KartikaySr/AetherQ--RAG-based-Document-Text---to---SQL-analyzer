@@ -146,8 +146,10 @@ export async function POST(request: Request) {
         name: file.name,
         size: file.size,
         storage_path: storagePath,
+        chunk_count: documentChunks.length,
         extraction: {
-          extraction_status: "completed"
+          extraction_status: "completed",
+          extracted_text: extractedText.slice(0, 240),
         }
       },
     });
